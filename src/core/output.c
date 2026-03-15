@@ -1,7 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   output.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/15 20:14:22 by rperez-t          #+#    #+#             */
+/*   Updated: 2026/03/15 20:14:23 by rperez-t         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ft_ssl.h"
-#include <errno.h>
-#include <string.h>
-#include <unistd.h>
 
 void	ft_putstr_fd(int fd, const char *str)
 {
@@ -41,32 +50,4 @@ void	print_invalid_command(const char *name)
 	ft_putstr_fd(2, name);
 	ft_putendl_fd(2, "' is an invalid command.");
 	print_command_list();
-}
-
-void	print_command_list(void)
-{
-	size_t			count;
-	size_t			index;
-	const t_command	*commands;
-
-	commands = get_command_table(&count);
-	ft_putendl_fd(2, "Commands:");
-	index = 0;
-	while (index < count)
-	{
-		ft_putendl_fd(2, commands[index].name);
-		index++;
-	}
-	ft_putendl_fd(2, "Flags:");
-	ft_putendl_fd(2, "-p -q -r -s");
-}
-
-void	print_system_error(const char *command, const char *target)
-{
-	ft_putstr_fd(2, "ft_ssl: ");
-	ft_putstr_fd(2, command);
-	ft_putstr_fd(2, ": ");
-	ft_putstr_fd(2, target);
-	ft_putstr_fd(2, ": ");
-	ft_putendl_fd(2, strerror(errno));
 }

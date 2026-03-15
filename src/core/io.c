@@ -1,23 +1,27 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   io.c                                               :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/15 23:10:03 by rperez-t          #+#    #+#             */
+/*   Updated: 2026/03/15 23:10:04 by rperez-t         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ft_ssl.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-int	buffer_append(t_buffer *buffer, const unsigned char *data, size_t len)
+static int	grow_buffer(t_buffer *buffer, size_t len)
 {
 	unsigned char	*new_data;
 	size_t			new_capacity;
 	size_t			index;
 
-	if (len == 0)
-		return (1);
-	if (buffer->len + len <= buffer->capacity)
-	{
-		ft_memcpy(buffer->data + buffer->len, data, len);
-		buffer->len += len;
-		return (1);
-	}
 	new_capacity = buffer->capacity;
 	if (new_capacity == 0)
 		new_capacity = 1024;
@@ -25,20 +29,26 @@ int	buffer_append(t_buffer *buffer, const unsigned char *data, size_t len)
 		new_capacity *= 2;
 	new_data = (unsigned char *)malloc(new_capacity);
 	if (new_data == NULL)
-	{
-		errno = ENOMEM;
-		return (0);
-	}
+		return (errno = ENOMEM, 0);
 	index = 0;
 	while (index < buffer->len)
 	{
 		new_data[index] = buffer->data[index];
 		index++;
 	}
-	ft_memcpy(new_data + buffer->len, data, len);
 	free(buffer->data);
 	buffer->data = new_data;
 	buffer->capacity = new_capacity;
+	return (1);
+}
+
+int	buffer_append(t_buffer *buffer, const unsigned char *data, size_t len)
+{
+	if (len == 0)
+		return (1);
+	if (buffer->len + len > buffer->capacity && !grow_buffer(buffer, len))
+		return (0);
+	ft_memcpy(buffer->data + buffer->len, data, len);
 	buffer->len += len;
 	return (1);
 }
@@ -77,21 +87,4 @@ int	read_file(const char *path, t_buffer *buffer)
 	ok = read_stream(fd, buffer);
 	close(fd);
 	return (ok);
-}
-
-int	write_all(int fd, const void *data, size_t len)
-{
-	const unsigned char	*bytes;
-	ssize_t				written;
-
-	bytes = (const unsigned char *)data;
-	while (len > 0)
-	{
-		written = write(fd, bytes, len);
-		if (written < 0)
-			return (0);
-		bytes += written;
-		len -= (size_t)written;
-	}
-	return (1);
 }
