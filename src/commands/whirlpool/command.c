@@ -1,18 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   whirlpool.c                                        :+:      :+:    :+:   */
+/*   command.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:48 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/15 23:43:32 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/03/16 00:20:42 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
 
-static const uint16_t	g_sbox_words[128] = {
+static t_whirlpool_tables	g_whirlpool_tables = {
+{
 	6179, 50920, 34744, 335, 13990, 54005, 31087, 37202,
 	24764, 39822, 41740, 31541, 7648, 55234, 11851, 65111,
 	5495, 14309, 40944, 19162, 22729, 10506, 45472, 27525,
@@ -29,11 +30,11 @@ static const uint16_t	g_sbox_words[128] = {
 	15489, 38135, 47379, 11475, 59246, 50179, 22084, 32681,
 	10939, 49491, 56331, 40300, 12660, 63046, 44169, 5345,
 	5690, 26889, 28854, 53485, 52290, 39076, 10332, 63622
+},
+{{0}},
+{0},
+	0
 };
-
-static uint64_t			g_c[8][256];
-static uint64_t			g_rc[11];
-static int				g_initialized;
 
 static uint64_t	build_entry(int x)
 {
@@ -41,7 +42,7 @@ static uint64_t	build_entry(int x)
 	uint16_t	c;
 	uint64_t	entry;
 
-	c = g_sbox_words[x / 2];
+	c = g_whirlpool_tables.sbox_words[x / 2];
 	if ((x % 2) == 0)
 		v[0] = c >> 8;
 	else
@@ -66,39 +67,47 @@ static uint64_t	build_entry(int x)
 
 static void	init_column(int x)
 {
-	int	index;
+	int	idx;
 
-	g_c[0][x] = build_entry(x);
-	index = 0;
-	while (++index < 8)
-		g_c[index][x] = (g_c[index - 1][x] >> 8)
-			| (g_c[index - 1][x] << 56);
+	g_whirlpool_tables.c[0][x] = build_entry(x);
+	idx = 0;
+	while (++idx < 8)
+		g_whirlpool_tables.c[idx][x] = (g_whirlpool_tables.c[idx - 1][x] >> 8)
+			| (g_whirlpool_tables.c[idx - 1][x] << 56);
 }
 
 void	whirlpool_init_tables(void)
 {
 	int	index[2];
 
-	if (g_initialized)
+	if (g_whirlpool_tables.initialized)
 		return ;
 	index[0] = -1;
 	while (++index[0] < 256)
 		init_column(index[0]);
-	g_rc[0] = 0;
+	g_whirlpool_tables.rc[0] = 0;
 	index[0] = 0;
 	while (++index[0] <= 10)
 	{
 		index[1] = 8 * (index[0] - 1);
-		g_rc[index[0]] = g_c[0][index[1]] & 0xFF00000000000000;
-		g_rc[index[0]] ^= g_c[1][index[1] + 1] & 0x00FF000000000000;
-		g_rc[index[0]] ^= g_c[2][index[1] + 2] & 0x0000FF0000000000;
-		g_rc[index[0]] ^= g_c[3][index[1] + 3] & 0x000000FF00000000;
-		g_rc[index[0]] ^= g_c[4][index[1] + 4] & 0x00000000FF000000;
-		g_rc[index[0]] ^= g_c[5][index[1] + 5] & 0x0000000000FF0000;
-		g_rc[index[0]] ^= g_c[6][index[1] + 6] & 0x000000000000FF00;
-		g_rc[index[0]] ^= g_c[7][index[1] + 7] & 0x00000000000000FF;
+		g_whirlpool_tables.rc[index[0]] = g_whirlpool_tables.c[0][index[1]]
+			& 0xFF00000000000000;
+		g_whirlpool_tables.rc[index[0]] ^= g_whirlpool_tables.c[1][index[1] + 1]
+			& 0x00FF000000000000;
+		g_whirlpool_tables.rc[index[0]] ^= g_whirlpool_tables.c[2][index[1] + 2]
+			& 0x0000FF0000000000;
+		g_whirlpool_tables.rc[index[0]] ^= g_whirlpool_tables.c[3][index[1] + 3]
+			& 0x000000FF00000000;
+		g_whirlpool_tables.rc[index[0]] ^= g_whirlpool_tables.c[4][index[1] + 4]
+			& 0x00000000FF000000;
+		g_whirlpool_tables.rc[index[0]] ^= g_whirlpool_tables.c[5][index[1] + 5]
+			& 0x0000000000FF0000;
+		g_whirlpool_tables.rc[index[0]] ^= g_whirlpool_tables.c[6][index[1] + 6]
+			& 0x000000000000FF00;
+		g_whirlpool_tables.rc[index[0]] ^= g_whirlpool_tables.c[7][index[1] + 7]
+			& 0x00000000000000FF;
 	}
-	g_initialized = 1;
+	g_whirlpool_tables.initialized = 1;
 }
 
 uint64_t	whirlpool_transform(const uint64_t src[8], int index)
@@ -112,7 +121,8 @@ uint64_t	whirlpool_transform(const uint64_t src[8], int index)
 	table = 0;
 	while (table < 8)
 	{
-		value ^= g_c[table][(src[(index - table) & 7] >> shift) & 0xFF];
+		value ^= g_whirlpool_tables.c[table][(src[(index - table) & 7]
+				>> shift) & 0xFF];
 		table++;
 		shift -= 8;
 	}
@@ -121,5 +131,5 @@ uint64_t	whirlpool_transform(const uint64_t src[8], int index)
 
 uint64_t	whirlpool_round_constant(int round)
 {
-	return (g_rc[round]);
+	return (g_whirlpool_tables.rc[round]);
 }

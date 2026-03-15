@@ -1,25 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   md5.c                                              :+:      :+:    :+:   */
+/*   command.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:27 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/15 23:27:28 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/03/16 00:16:52 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
 
-static const uint32_t	g_md5_s[64] = {
+static const t_md5_tables	g_md5_tables = {
+{
 	7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
 	5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
 	4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
 	6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
-};
-
-static const uint32_t	g_md5_k[64] = {
+},
+{
 	0xD76AA478, 0xE8C7B756, 0x242070DB, 0xC1BDCEEE,
 	0xF57C0FAF, 0x4787C62A, 0xA8304613, 0xFD469501,
 	0x698098D8, 0x8B44F7AF, 0xFFFF5BB1, 0x895CD7BE,
@@ -36,6 +36,7 @@ static const uint32_t	g_md5_k[64] = {
 	0x655B59C3, 0x8F0CCC92, 0xFFEFF47D, 0x85845DD1,
 	0x6FA87E4F, 0xFE2CE6E0, 0xA3014314, 0x4E0811A1,
 	0xF7537E82, 0xBD3AF235, 0x2AD7D2BB, 0xEB86D391
+}
 };
 
 static uint32_t	left_rotate(uint32_t value, uint32_t shift)
@@ -69,11 +70,11 @@ static void	round_step(int index, uint32_t state[4], const uint32_t words[16])
 		g = (uint32_t)((3 * index + 5) % 16);
 	else if (index >= 48)
 		g = (uint32_t)((7 * index) % 16);
-	f += state[0] + g_md5_k[index] + words[g];
+	f += state[0] + g_md5_tables.k[index] + words[g];
 	state[0] = state[3];
 	state[3] = state[2];
 	state[2] = state[1];
-	state[1] += left_rotate(f, g_md5_s[index]);
+	state[1] += left_rotate(f, g_md5_tables.s[index]);
 }
 
 void	md5_process_block(t_md5_ctx *ctx, const unsigned char *block)

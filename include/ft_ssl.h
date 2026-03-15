@@ -66,6 +66,25 @@ typedef struct s_sha256_ctx
 	uint32_t	h[8];
 }	t_sha256_ctx;
 
+typedef struct s_md5_tables
+{
+	uint32_t	s[64];
+	uint32_t	k[64];
+}	t_md5_tables;
+
+typedef struct s_sha256_tables
+{
+	uint32_t	k[64];
+}	t_sha256_tables;
+
+typedef struct s_whirlpool_tables
+{
+	uint16_t	sbox_words[128];
+	uint64_t	c[8][256];
+	uint64_t	rc[11];
+	int			initialized;
+}	t_whirlpool_tables;
+
 typedef struct s_digest_runtime
 {
 	const t_digest_algorithm	*algorithm;

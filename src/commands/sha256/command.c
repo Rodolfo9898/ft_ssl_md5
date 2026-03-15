@@ -1,18 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   sha256.c                                           :+:      :+:    :+:   */
+/*   command.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:35 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/15 23:27:36 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/03/16 00:17:19 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
 
-static const uint32_t	g_sha256_k[64] = {
+static const t_sha256_tables	g_sha256_tables = {
+{
 	1116352408, 1899447441, 3049323471, 3921009573,
 	961987163, 1508970993, 2453635748, 2870763221,
 	3624381080, 310598401, 607225278, 1426881987,
@@ -29,6 +30,7 @@ static const uint32_t	g_sha256_k[64] = {
 	958139571, 1322822218, 1537002063, 1747873779,
 	1955562222, 2024104815, 2227730452, 2361852424,
 	2428436474, 2756734187, 3204031479, 3329325298
+}
 };
 
 static uint32_t	right_rotate(uint32_t value, uint32_t shift)
@@ -72,7 +74,7 @@ static void	round_step(uint32_t state[8], uint32_t word, int index)
 	tmp[0] += right_rotate(state[4], 6) ^ right_rotate(state[4], 11)
 		^ right_rotate(state[4], 25);
 	tmp[0] += (state[4] & state[5]) ^ ((~state[4]) & state[6]);
-	tmp[0] += g_sha256_k[index] + word;
+	tmp[0] += g_sha256_tables.k[index] + word;
 	tmp[1] = right_rotate(state[0], 2) ^ right_rotate(state[0], 13);
 	tmp[1] ^= right_rotate(state[0], 22);
 	tmp[1] += (state[0] & state[1]) ^ (state[0] & state[2]);

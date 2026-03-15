@@ -16,32 +16,32 @@ const t_digest_algorithm	*get_md5_algorithm(void);
 const t_digest_algorithm	*get_sha256_algorithm(void);
 const t_digest_algorithm	*get_whirlpool_algorithm(void);
 
-static const t_command	g_commands[] = {
-{
-	"md5",
-	COMMAND_GROUP_MESSAGE_DIGEST,
-	run_digest_command,
-	(const void *)get_md5_algorithm
-},
-{
-	"sha256",
-	COMMAND_GROUP_MESSAGE_DIGEST,
-	run_digest_command,
-	(const void *)get_sha256_algorithm
-},
-{
-	"whirlpool",
-	COMMAND_GROUP_MESSAGE_DIGEST,
-	run_digest_command,
-	(const void *)get_whirlpool_algorithm
-}
-};
-
 const t_command	*get_command_table(size_t *count)
 {
+	static const t_command	commands[] = {
+	{
+		"md5",
+		COMMAND_GROUP_MESSAGE_DIGEST,
+		run_digest_command,
+		(const void *)get_md5_algorithm
+	},
+	{
+		"sha256",
+		COMMAND_GROUP_MESSAGE_DIGEST,
+		run_digest_command,
+		(const void *)get_sha256_algorithm
+	},
+	{
+		"whirlpool",
+		COMMAND_GROUP_MESSAGE_DIGEST,
+		run_digest_command,
+		(const void *)get_whirlpool_algorithm
+	}
+	};
+
 	if (count != NULL)
-		*count = sizeof(g_commands) / sizeof(g_commands[0]);
-	return (g_commands);
+		*count = sizeof(commands) / sizeof(commands[0]);
+	return (commands);
 }
 
 const t_command	*find_command(const char *name)
