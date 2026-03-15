@@ -45,9 +45,18 @@ void	print_invalid_command(const char *name)
 
 void	print_command_list(void)
 {
+	size_t			count;
+	size_t			index;
+	const t_command	*commands;
+
+	commands = get_command_table(&count);
 	ft_putendl_fd(2, "Commands:");
-	ft_putendl_fd(2, "md5");
-	ft_putendl_fd(2, "sha256");
+	index = 0;
+	while (index < count)
+	{
+		ft_putendl_fd(2, commands[index].name);
+		index++;
+	}
 	ft_putendl_fd(2, "Flags:");
 	ft_putendl_fd(2, "-p -q -r -s");
 }
@@ -60,13 +69,4 @@ void	print_system_error(const char *command, const char *target)
 	ft_putstr_fd(2, target);
 	ft_putstr_fd(2, ": ");
 	ft_putendl_fd(2, strerror(errno));
-}
-
-void	print_digest_error(const char *algorithm, const char *target)
-{
-	ft_putstr_fd(2, "ft_ssl: ");
-	ft_putstr_fd(2, algorithm);
-	ft_putstr_fd(2, ": ");
-	ft_putstr_fd(2, target);
-	ft_putendl_fd(2, ": No such file or directory");
 }

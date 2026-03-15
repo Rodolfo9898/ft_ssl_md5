@@ -35,7 +35,7 @@ typedef struct s_digest_algorithm
 	const char	*name;
 	const char	*display_name;
 	size_t		digest_size;
-	void		(*compute)(const unsigned char *data, size_t len,
+	int			(*compute)(const unsigned char *data, size_t len,
 					unsigned char *digest);
 } 	t_digest_algorithm;
 
@@ -73,21 +73,18 @@ void				ft_puthex_fd(int fd, const unsigned char *data, size_t len);
 void				print_invalid_command(const char *name);
 void				print_system_error(const char *command,
 						const char *target);
-void				print_digest_error(const char *algorithm,
-						const char *target);
 void				print_command_list(void);
 void				print_usage(void);
 
 const t_command		*find_command(const char *name);
 const t_command		*get_command_table(size_t *count);
+int					execute_command_argv(int argc, char **argv);
 
 int					run_help_command(const t_command *command,
 						int argc, char **argv);
 int					run_digest_command(const t_command *command,
 						int argc, char **argv);
 
-const t_digest_algorithm	*get_md5_algorithm(void);
-const t_digest_algorithm	*get_sha256_algorithm(void);
 void						format_digest_output(
 							const t_digest_algorithm *algorithm,
 							const t_digest_options *options,

@@ -1,10 +1,11 @@
 #include "ft_ssl.h"
+#include <errno.h>
 #include <stdlib.h>
 
 typedef struct s_sha256_ctx
 {
 	uint32_t	h[8];
-}	t_sha256_ctx;
+} 	t_sha256_ctx;
 
 static uint32_t	right_rotate(uint32_t value, uint32_t shift)
 {
@@ -126,7 +127,10 @@ static unsigned char	*pad_message(const unsigned char *data, size_t len,
 	*padded_len = new_len + 8;
 	buffer = (unsigned char *)malloc(*padded_len);
 	if (buffer == NULL)
+	{
+		errno = ENOMEM;
 		return (NULL);
+	}
 	ft_memcpy(buffer, data, len);
 	buffer[len] = 0x80;
 	if (new_len > len + 1)
@@ -142,7 +146,7 @@ static unsigned char	*pad_message(const unsigned char *data, size_t len,
 	return (buffer);
 }
 
-static void	sha256_compute(const unsigned char *data, size_t len,
+static int	sha256_compute(const unsigned char *data, size_t len,
 	unsigned char *digest)
 {
 	t_sha256_ctx	ctx;
@@ -161,7 +165,7 @@ static void	sha256_compute(const unsigned char *data, size_t len,
 	ctx.h[7] = 0x5be0cd19;
 	buffer = pad_message(data, len, &padded_len);
 	if (buffer == NULL)
-		return ;
+		return (0);
 	offset = 0;
 	while (offset < padded_len)
 	{
@@ -175,6 +179,7 @@ static void	sha256_compute(const unsigned char *data, size_t len,
 		write_u32_be(digest + (index * 4), ctx.h[index]);
 		index++;
 	}
+	return (1);
 }
 
 const t_digest_algorithm	*get_sha256_algorithm(void)

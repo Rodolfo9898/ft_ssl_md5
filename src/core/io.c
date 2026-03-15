@@ -1,4 +1,5 @@
 #include "ft_ssl.h"
+#include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -24,7 +25,10 @@ int	buffer_append(t_buffer *buffer, const unsigned char *data, size_t len)
 		new_capacity *= 2;
 	new_data = (unsigned char *)malloc(new_capacity);
 	if (new_data == NULL)
+	{
+		errno = ENOMEM;
 		return (0);
+	}
 	index = 0;
 	while (index < buffer->len)
 	{

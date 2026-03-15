@@ -1,4 +1,5 @@
 #include "ft_ssl.h"
+#include <errno.h>
 #include <stdlib.h>
 
 typedef struct s_md5_ctx
@@ -7,7 +8,7 @@ typedef struct s_md5_ctx
 	uint32_t	b;
 	uint32_t	c;
 	uint32_t	d;
-}	t_md5_ctx;
+} 	t_md5_ctx;
 
 static uint32_t	left_rotate(uint32_t value, uint32_t shift)
 {
@@ -123,7 +124,10 @@ static unsigned char	*pad_message(const unsigned char *data, size_t len,
 	*padded_len = new_len + 8;
 	buffer = (unsigned char *)malloc(*padded_len);
 	if (buffer == NULL)
+	{
+		errno = ENOMEM;
 		return (NULL);
+	}
 	ft_memcpy(buffer, data, len);
 	buffer[len] = 0x80;
 	if (new_len > len + 1)
@@ -138,7 +142,8 @@ static unsigned char	*pad_message(const unsigned char *data, size_t len,
 	return (buffer);
 }
 
-static void	md5_compute(const unsigned char *data, size_t len, unsigned char *digest)
+static int	md5_compute(const unsigned char *data, size_t len,
+	unsigned char *digest)
 {
 	t_md5_ctx		ctx;
 	unsigned char	*buffer;
@@ -151,7 +156,7 @@ static void	md5_compute(const unsigned char *data, size_t len, unsigned char *di
 	ctx.d = 0x10325476;
 	buffer = pad_message(data, len, &padded_len);
 	if (buffer == NULL)
-		return ;
+		return (0);
 	offset = 0;
 	while (offset < padded_len)
 	{
@@ -163,6 +168,7 @@ static void	md5_compute(const unsigned char *data, size_t len, unsigned char *di
 	write_u32_le(digest + 4, ctx.b);
 	write_u32_le(digest + 8, ctx.c);
 	write_u32_le(digest + 12, ctx.d);
+	return (1);
 }
 
 const t_digest_algorithm	*get_md5_algorithm(void)

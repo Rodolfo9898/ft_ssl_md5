@@ -1,4 +1,5 @@
 #include "ft_ssl.h"
+#include <errno.h>
 #include <unistd.h>
 
 typedef struct s_digest_runtime
@@ -11,8 +12,6 @@ typedef struct s_digest_runtime
 	int						stdin_loaded;
 	t_buffer					stdin_buffer;
 } 	t_digest_runtime;
-
-static const t_digest_algorithm	*resolve_algorithm(const char *name);
 
 static size_t	trimmed_label_len(const t_buffer *buffer)
 {
@@ -35,15 +34,22 @@ static int	load_stdin_once(t_digest_runtime *runtime)
 	return (1);
 }
 
-static void	compute_and_print(const t_digest_runtime *runtime,
+static int	compute_and_print(const t_digest_runtime *runtime,
 	t_digest_source_kind source_kind, const char *label, size_t label_len,
 	const t_buffer *buffer)
 {
-	unsigned char	digest[32];
+	unsigned char	digest[64];
 
-	runtime->algorithm->compute(buffer->data, buffer->len, digest);
+	if (!runtime->algorithm->compute(buffer->data, buffer->len, digest))
+	{
+		if (errno == 0)
+			errno = ENOMEM;
+		print_system_error(runtime->algorithm->name, "digest");
+		return (0);
+	}
 	format_digest_output(runtime->algorithm, &runtime->options, source_kind,
 		label, label_len, digest);
+	return (1);
 }
 
 static int	process_stdin_p(t_digest_runtime *runtime)
@@ -53,24 +59,35 @@ static int	process_stdin_p(t_digest_runtime *runtime)
 	if (!load_stdin_once(runtime))
 		return (0);
 	if (runtime->options.quiet)
-		write_all(STDOUT_FILENO, runtime->stdin_buffer.data, runtime->stdin_buffer.len);
+		write_all(STDOUT_FILENO, runtime->stdin_buffer.data,
+			runtime->stdin_buffer.len);
 	label_len = trimmed_label_len(&runtime->stdin_buffer);
-	compute_and_print(runtime, DIGEST_SOURCE_STDIN_P,
-		(const char *)runtime->stdin_buffer.data, label_len,
-		&runtime->stdin_buffer);
+	if (!compute_and_print(runtime, DIGEST_SOURCE_STDIN_P,
+			(const char *)runtime->stdin_buffer.data, label_len,
+			&runtime->stdin_buffer))
+	{
+		runtime->had_error = 1;
+		return (0);
+	}
 	runtime->processed_any = 1;
 	return (1);
 }
 
-static void	process_string(t_digest_runtime *runtime, const char *value)
+static int	process_string(t_digest_runtime *runtime, const char *value)
 {
 	t_buffer	buffer;
 
 	buffer.data = (unsigned char *)value;
 	buffer.len = ft_strlen(value);
 	buffer.capacity = buffer.len;
-	compute_and_print(runtime, DIGEST_SOURCE_STRING, value, buffer.len, &buffer);
+	if (!compute_and_print(runtime, DIGEST_SOURCE_STRING, value,
+			buffer.len, &buffer))
+	{
+		runtime->had_error = 1;
+		return (0);
+	}
 	runtime->processed_any = 1;
+	return (1);
 }
 
 static void	process_file(t_digest_runtime *runtime, const char *path)
@@ -82,26 +99,34 @@ static void	process_file(t_digest_runtime *runtime, const char *path)
 	buffer.capacity = 0;
 	if (!read_file(path, &buffer))
 	{
-		print_digest_error(runtime->algorithm->name, path);
+		print_system_error(runtime->algorithm->name, path);
 		runtime->had_error = 1;
 		return ;
 	}
-	compute_and_print(runtime, DIGEST_SOURCE_FILE, path, ft_strlen(path), &buffer);
+	if (!compute_and_print(runtime, DIGEST_SOURCE_FILE, path,
+			ft_strlen(path), &buffer))
+		runtime->had_error = 1;
+	else
+		runtime->processed_any = 1;
 	buffer_free(&buffer);
-	runtime->processed_any = 1;
 }
 
 static int	process_default_stdin(t_digest_runtime *runtime)
 {
 	if (!load_stdin_once(runtime))
 		return (0);
-	compute_and_print(runtime, DIGEST_SOURCE_STDIN_DEFAULT, NULL, 0,
-		&runtime->stdin_buffer);
+	if (!compute_and_print(runtime, DIGEST_SOURCE_STDIN_DEFAULT, NULL, 0,
+			&runtime->stdin_buffer))
+	{
+		runtime->had_error = 1;
+		return (0);
+	}
 	runtime->processed_any = 1;
 	return (1);
 }
 
-static int	handle_option(t_digest_runtime *runtime, int argc, char **argv, int *index)
+static int	handle_option(t_digest_runtime *runtime, int argc, char **argv,
+	int *index)
 {
 	if (ft_is_streq(argv[*index], "-p"))
 		return (process_stdin_p(runtime));
@@ -126,8 +151,7 @@ static int	handle_option(t_digest_runtime *runtime, int argc, char **argv, int *
 			return (0);
 		}
 		*index += 1;
-		process_string(runtime, argv[*index]);
-		return (1);
+		return (process_string(runtime, argv[*index]));
 	}
 	runtime->parsed_operand = 1;
 	process_file(runtime, argv[*index]);
@@ -136,11 +160,13 @@ static int	handle_option(t_digest_runtime *runtime, int argc, char **argv, int *
 
 int	run_digest_command(const t_command *command, int argc, char **argv)
 {
-	t_digest_runtime	runtime;
-	int					index;
-	int					status;
+	t_digest_runtime						runtime;
+	const t_digest_algorithm	*(*get_algorithm)(void);
+	int									index;
+	int									status;
 
-	runtime.algorithm = resolve_algorithm(command->name);
+	get_algorithm = (const t_digest_algorithm *(*)(void))command->data;
+	runtime.algorithm = get_algorithm();
 	runtime.options.quiet = 0;
 	runtime.options.reverse = 0;
 	runtime.parsed_operand = 0;
@@ -218,11 +244,4 @@ void	format_digest_output(const t_digest_algorithm *algorithm,
 	}
 	ft_puthex_fd(STDOUT_FILENO, digest, algorithm->digest_size);
 	write_all(STDOUT_FILENO, "\n", 1);
-}
-
-static const t_digest_algorithm	*resolve_algorithm(const char *name)
-{
-	if (ft_is_streq(name, "md5"))
-		return (get_md5_algorithm());
-	return (get_sha256_algorithm());
 }
