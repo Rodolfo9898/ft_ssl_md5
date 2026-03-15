@@ -144,6 +144,14 @@ int					run_stdin_commands(void);
 int					tokenize_line(const char *line, int *argc_out,
 						char ***argv_out);
 void				free_argv_tokens(char **argv, int argc);
+int					split_append_char(t_split_state *state, char c);
+int					split_append_token(t_split_state *state);
+
+void				whirlpool_init_tables(void);
+void				whirlpool_process_buffer(uint64_t hash[8],
+					const unsigned char *buffer);
+uint64_t		whirlpool_transform(const uint64_t src[8], int index);
+uint64_t		whirlpool_round_constant(int round);
 
 void				format_digest_output(const t_digest_algorithm *algorithm,
 						const t_digest_options *options,
