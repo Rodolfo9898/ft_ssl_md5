@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 20:05:21 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/15 23:24:44 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/03/15 23:46:15 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,6 +149,11 @@ void				whirlpool_process_buffer(uint64_t hash[8],
 uint64_t			whirlpool_transform(const uint64_t src[8], int index);
 uint64_t			whirlpool_round_constant(int round);
 
+int					process_digest_stdin(t_digest_runtime *runtime, int mode);
+int					handle_digest_arg(t_digest_runtime *runtime, int argc,
+						char **argv, int *index);
+int					process_digest_string(t_digest_runtime *run, const char *v);
+void				process_digest_file(t_digest_runtime *run, const char *dir);
 void				format_digest_output(const t_digest_algorithm *algorithm,
 						const t_digest_options *options,
 						const t_digest_print *print);

@@ -11,6 +11,8 @@ SRC = \
 	src/core/stdin_commands.c \
 	src/commands/digest/digest_command.c \
 	src/commands/digest/digest_sources.c \
+	src/commands/digest/digest_string.c \
+	src/commands/digest/digest_options.c \
 	src/commands/digest/digest_output.c \
 	src/commands/digest/md5.c \
 	src/commands/digest/md5_algo.c \

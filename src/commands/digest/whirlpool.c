@@ -1,281 +1,125 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   whirlpool.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/15 23:27:48 by rperez-t          #+#    #+#             */
+/*   Updated: 2026/03/15 23:43:32 by rperez-t         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ft_ssl.h"
 
-typedef struct s_wp_word
-{
-	uint32_t	v[2];
-} 	t_wp_word;
-
 static const uint16_t	g_sbox_words[128] = {
-	0x1823, 0xc6e8, 0x87b8, 0x014f, 0x36a6, 0xd2f5, 0x796f, 0x9152,
-	0x60bc, 0x9b8e, 0xa30c, 0x7b35, 0x1de0, 0xd7c2, 0x2e4b, 0xfe57,
-	0x1577, 0x37e5, 0x9ff0, 0x4ada, 0x58c9, 0x290a, 0xb1a0, 0x6b85,
-	0xbd5d, 0x10f4, 0xcb3e, 0x0567, 0xe427, 0x418b, 0xa77d, 0x95d8,
-	0xfbee, 0x7c66, 0xdd17, 0x479e, 0xca2d, 0xbf07, 0xad5a, 0x8333,
-	0x6302, 0xaa71, 0xc819, 0x49d9, 0xf2e3, 0x5b88, 0x9a26, 0x32b0,
-	0xe90f, 0xd580, 0xbecd, 0x3448, 0xff7a, 0x905f, 0x2068, 0x1aae,
-	0xb454, 0x9322, 0x64f1, 0x7312, 0x4008, 0xc3ec, 0xdba1, 0x8d3d,
-	0x9700, 0xcf2b, 0x7682, 0xd61b, 0xb5af, 0x6a50, 0x45f3, 0x30ef,
-	0x3f55, 0xa2ea, 0x65ba, 0x2fc0, 0xde1c, 0xfd4d, 0x9275, 0x068a,
-	0xb2e6, 0x0e1f, 0x62d4, 0xa896, 0xf9c5, 0x2559, 0x8472, 0x394c,
-	0x5e78, 0x388c, 0xd1a5, 0xe261, 0xb321, 0x9c1e, 0x43c7, 0xfc04,
-	0x5199, 0x6d0d, 0xfadf, 0x7e24, 0x3bab, 0xce11, 0x8f4e, 0xb7eb,
-	0x3c81, 0x94f7, 0xb913, 0x2cd3, 0xe76e, 0xc403, 0x5644, 0x7fa9,
-	0x2abb, 0xc153, 0xdc0b, 0x9d6c, 0x3174, 0xf646, 0xac89, 0x14e1,
-	0x163a, 0x6909, 0x70b6, 0xd0ed, 0xcc42, 0x98a4, 0x285c, 0xf886
+	6179, 50920, 34744, 335, 13990, 54005, 31087, 37202,
+	24764, 39822, 41740, 31541, 7648, 55234, 11851, 65111,
+	5495, 14309, 40944, 19162, 22729, 10506, 45472, 27525,
+	48477, 4340, 52030, 1383, 58407, 16779, 42877, 38360,
+	64494, 31846, 56599, 18334, 51757, 48903, 44378, 33587,
+	25346, 43633, 51225, 18905, 62179, 23432, 39462, 12976,
+	59663, 54656, 48845, 13384, 65402, 36959, 8296, 6830,
+	46164, 37666, 25841, 29458, 16392, 50156, 56225, 36157,
+	38656, 53035, 30338, 54811, 46511, 27216, 17907, 12527,
+	16213, 41706, 26042, 12224, 56860, 64845, 37493, 1674,
+	45798, 3615, 25300, 43158, 63941, 9561, 33906, 14668,
+	24184, 14476, 53669, 57953, 45857, 39966, 17351, 64516,
+	20889, 27917, 64223, 32292, 15275, 52753, 36686, 47083,
+	15489, 38135, 47379, 11475, 59246, 50179, 22084, 32681,
+	10939, 49491, 56331, 40300, 12660, 63046, 44169, 5345,
+	5690, 26889, 28854, 53485, 52290, 39076, 10332, 63622
 };
 
-static uint32_t	g_c[8][256][2];
-static uint32_t	g_rc[11][2];
-static int		g_initialized;
+static uint64_t			g_c[8][256];
+static uint64_t			g_rc[11];
+static int				g_initialized;
 
-static void	init_tables(void)
+static uint64_t	build_entry(int x)
 {
-	uint32_t	v1;
-	uint32_t	v2;
-	uint32_t	v4;
-	uint32_t	v5;
-	uint32_t	v8;
-	uint32_t	v9;
+	uint32_t	v[6];
 	uint16_t	c;
-	int			t;
-	int			x;
-	int			r;
-	int			i;
+	uint64_t	entry;
+
+	c = g_sbox_words[x / 2];
+	if ((x % 2) == 0)
+		v[0] = c >> 8;
+	else
+		v[0] = c & 0xFF;
+	v[1] = v[0] << 1;
+	if (v[1] >= 0x100)
+		v[1] ^= 0x11D;
+	v[2] = v[1] << 1;
+	if (v[2] >= 0x100)
+		v[2] ^= 0x11D;
+	v[3] = v[2] ^ v[0];
+	v[4] = v[2] << 1;
+	if (v[4] >= 0x100)
+		v[4] ^= 0x11D;
+	v[5] = v[4] ^ v[0];
+	entry = ((uint64_t)v[0] << 56) | ((uint64_t)v[0] << 48);
+	entry |= ((uint64_t)v[2] << 40) | ((uint64_t)v[0] << 32);
+	entry |= ((uint64_t)v[4] << 24) | ((uint64_t)v[3] << 16);
+	entry |= ((uint64_t)v[1] << 8) | (uint64_t)v[5];
+	return (entry);
+}
+
+static void	init_column(int x)
+{
+	int	index;
+
+	g_c[0][x] = build_entry(x);
+	index = 0;
+	while (++index < 8)
+		g_c[index][x] = (g_c[index - 1][x] >> 8)
+			| (g_c[index - 1][x] << 56);
+}
+
+void	whirlpool_init_tables(void)
+{
+	int	index[2];
 
 	if (g_initialized)
 		return ;
-	t = 0;
-	while (t < 8)
+	index[0] = -1;
+	while (++index[0] < 256)
+		init_column(index[0]);
+	g_rc[0] = 0;
+	index[0] = 0;
+	while (++index[0] <= 10)
 	{
-		x = 0;
-		while (x < 256)
-		{
-			g_c[t][x][0] = 0;
-			g_c[t][x][1] = 0;
-			x++;
-		}
-		t++;
-	}
-	x = 0;
-	while (x < 256)
-	{
-		c = g_sbox_words[x / 2];
-		v1 = ((x & 1) == 0) ? (uint32_t)(c >> 8) : (uint32_t)(c & 0xff);
-		v2 = v1 << 1;
-		if (v2 >= 0x100)
-			v2 ^= 0x11d;
-		v4 = v2 << 1;
-		if (v4 >= 0x100)
-			v4 ^= 0x11d;
-		v5 = v4 ^ v1;
-		v8 = v4 << 1;
-		if (v8 >= 0x100)
-			v8 ^= 0x11d;
-		v9 = v8 ^ v1;
-		g_c[0][x][0] = (v1 << 24) | (v1 << 16) | (v4 << 8) | v1;
-		g_c[0][x][1] = (v8 << 24) | (v5 << 16) | (v2 << 8) | v9;
-		t = 1;
-		while (t < 8)
-		{
-			g_c[t][x][0] = (g_c[t - 1][x][0] >> 8)
-				| (g_c[t - 1][x][1] << 24);
-			g_c[t][x][1] = (g_c[t - 1][x][1] >> 8)
-				| (g_c[t - 1][x][0] << 24);
-			t++;
-		}
-		x++;
-	}
-	g_rc[0][0] = 0;
-	g_rc[0][1] = 0;
-	r = 1;
-	while (r <= 10)
-	{
-		i = 8 * (r - 1);
-		g_rc[r][0] = (g_c[0][i][0] & 0xff000000U)
-			^ (g_c[1][i + 1][0] & 0x00ff0000U)
-			^ (g_c[2][i + 2][0] & 0x0000ff00U)
-			^ (g_c[3][i + 3][0] & 0x000000ffU);
-		g_rc[r][1] = (g_c[4][i + 4][1] & 0xff000000U)
-			^ (g_c[5][i + 5][1] & 0x00ff0000U)
-			^ (g_c[6][i + 6][1] & 0x0000ff00U)
-			^ (g_c[7][i + 7][1] & 0x000000ffU);
-		r++;
+		index[1] = 8 * (index[0] - 1);
+		g_rc[index[0]] = g_c[0][index[1]] & 0xFF00000000000000;
+		g_rc[index[0]] ^= g_c[1][index[1] + 1] & 0x00FF000000000000;
+		g_rc[index[0]] ^= g_c[2][index[1] + 2] & 0x0000FF0000000000;
+		g_rc[index[0]] ^= g_c[3][index[1] + 3] & 0x000000FF00000000;
+		g_rc[index[0]] ^= g_c[4][index[1] + 4] & 0x00000000FF000000;
+		g_rc[index[0]] ^= g_c[5][index[1] + 5] & 0x0000000000FF0000;
+		g_rc[index[0]] ^= g_c[6][index[1] + 6] & 0x000000000000FF00;
+		g_rc[index[0]] ^= g_c[7][index[1] + 7] & 0x00000000000000FF;
 	}
 	g_initialized = 1;
 }
 
-static void	process_buffer(uint32_t hash[8][2], const unsigned char *buffer)
+uint64_t	whirlpool_transform(const uint64_t src[8], int index)
 {
-	uint32_t	block[8][2];
-	uint32_t	k[8][2];
-	uint32_t	l[8][2];
-	uint32_t	state[8][2];
-	int			i;
-	int			j;
-	int			r;
-	int			s;
-	int			t;
+	uint64_t	value;
+	int			shift;
+	int			table;
 
-	i = 0;
-	j = 0;
-	while (i < 8)
+	value = 0;
+	shift = 56;
+	table = 0;
+	while (table < 8)
 	{
-		block[i][0] = ((uint32_t)buffer[j] << 24)
-			^ ((uint32_t)buffer[j + 1] << 16)
-			^ ((uint32_t)buffer[j + 2] << 8)
-			^ (uint32_t)buffer[j + 3];
-		block[i][1] = ((uint32_t)buffer[j + 4] << 24)
-			^ ((uint32_t)buffer[j + 5] << 16)
-			^ ((uint32_t)buffer[j + 6] << 8)
-			^ (uint32_t)buffer[j + 7];
-		state[i][0] = block[i][0] ^ (k[i][0] = hash[i][0]);
-		state[i][1] = block[i][1] ^ (k[i][1] = hash[i][1]);
-		i++;
-		j += 8;
+		value ^= g_c[table][(src[(index - table) & 7] >> shift) & 0xFF];
+		table++;
+		shift -= 8;
 	}
-	r = 1;
-	while (r <= 10)
-	{
-		i = 0;
-		while (i < 8)
-		{
-			l[i][0] = 0;
-			l[i][1] = 0;
-			t = 0;
-			s = 56;
-			j = 0;
-			while (t < 8)
-			{
-				l[i][0] ^= g_c[t][(k[(i - t) & 7][j] >> (s % 32)) & 0xff][0];
-				l[i][1] ^= g_c[t][(k[(i - t) & 7][j] >> (s % 32)) & 0xff][1];
-				t++;
-				s -= 8;
-				j = (s < 32);
-			}
-			i++;
-		}
-		i = 0;
-		while (i < 8)
-		{
-			k[i][0] = l[i][0];
-			k[i][1] = l[i][1];
-			i++;
-		}
-		k[0][0] ^= g_rc[r][0];
-		k[0][1] ^= g_rc[r][1];
-		i = 0;
-		while (i < 8)
-		{
-			l[i][0] = k[i][0];
-			l[i][1] = k[i][1];
-			t = 0;
-			s = 56;
-			j = 0;
-			while (t < 8)
-			{
-				l[i][0] ^= g_c[t][(state[(i - t) & 7][j] >> (s % 32)) & 0xff][0];
-				l[i][1] ^= g_c[t][(state[(i - t) & 7][j] >> (s % 32)) & 0xff][1];
-				t++;
-				s -= 8;
-				j = (s < 32);
-			}
-			i++;
-		}
-		i = 0;
-		while (i < 8)
-		{
-			state[i][0] = l[i][0];
-			state[i][1] = l[i][1];
-			i++;
-		}
-		r++;
-	}
-	i = 0;
-	while (i < 8)
-	{
-		hash[i][0] ^= state[i][0] ^ block[i][0];
-		hash[i][1] ^= state[i][1] ^ block[i][1];
-		i++;
-	}
+	return (value);
 }
 
-static void	build_length(unsigned char bit_length[32], size_t len)
+uint64_t	whirlpool_round_constant(int round)
 {
-	uint64_t	bits;
-	int			index;
-
-	ft_memset(bit_length, 0, 32);
-	bits = (uint64_t)len * 8;
-	index = 0;
-	while (index < 8)
-	{
-		bit_length[31 - index] = (unsigned char)(bits & 0xff);
-		bits >>= 8;
-		index++;
-	}
-}
-
-static int	whirlpool_compute(const unsigned char *data, size_t len,
-	unsigned char *digest)
-{
-	uint32_t		hash[8][2];
-	unsigned char	block[64];
-	unsigned char	bit_length[32];
-	size_t			offset;
-	size_t			remaining;
-	int				index;
-
-	init_tables();
-	index = 0;
-	while (index < 8)
-	{
-		hash[index][0] = 0;
-		hash[index][1] = 0;
-		index++;
-	}
-	offset = 0;
-	while (offset + 64 <= len)
-	{
-		process_buffer(hash, data + offset);
-		offset += 64;
-	}
-	remaining = len - offset;
-	ft_memset(block, 0, sizeof(block));
-	if (remaining > 0)
-		ft_memcpy(block, data + offset, remaining);
-	block[remaining] |= 0x80;
-	if (remaining + 1 > 32)
-	{
-		process_buffer(hash, block);
-		ft_memset(block, 0, sizeof(block));
-	}
-	build_length(bit_length, len);
-	ft_memcpy(block + 32, bit_length, 32);
-	process_buffer(hash, block);
-	index = 0;
-	while (index < 8)
-	{
-		digest[index * 8] = (unsigned char)(hash[index][0] >> 24);
-		digest[index * 8 + 1] = (unsigned char)(hash[index][0] >> 16);
-		digest[index * 8 + 2] = (unsigned char)(hash[index][0] >> 8);
-		digest[index * 8 + 3] = (unsigned char)hash[index][0];
-		digest[index * 8 + 4] = (unsigned char)(hash[index][1] >> 24);
-		digest[index * 8 + 5] = (unsigned char)(hash[index][1] >> 16);
-		digest[index * 8 + 6] = (unsigned char)(hash[index][1] >> 8);
-		digest[index * 8 + 7] = (unsigned char)hash[index][1];
-		index++;
-	}
-	return (1);
-}
-
-const t_digest_algorithm	*get_whirlpool_algorithm(void)
-{
-	static const t_digest_algorithm	algorithm = {
-		"whirlpool",
-		"WHIRLPOOL",
-		64,
-		whirlpool_compute
-	};
-
-	return (&algorithm);
+	return (g_rc[round]);
 }
