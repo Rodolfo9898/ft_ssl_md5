@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 20:05:21 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/15 20:06:31 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/03/15 23:24:44 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,16 +23,12 @@ typedef enum e_command_group
 	COMMAND_GROUP_CIPHER
 }	t_command_group;
 
-struct	s_command;
-typedef int	(*t_command_handler)(const struct s_command *command,
-				int argc, char **argv);
-
 typedef struct s_command
 {
-	const char			*name;
-	t_command_group		group;
-	t_command_handler	handler;
-	const void			*data;
+	const char		*name;
+	t_command_group	group;
+	int				(*handler)(const struct s_command *c, int ac, char **av);
+	const void		*data;
 }	t_command;
 
 typedef struct s_buffer
@@ -149,9 +145,9 @@ int					split_append_token(t_split_state *state);
 
 void				whirlpool_init_tables(void);
 void				whirlpool_process_buffer(uint64_t hash[8],
-					const unsigned char *buffer);
-uint64_t		whirlpool_transform(const uint64_t src[8], int index);
-uint64_t		whirlpool_round_constant(int round);
+						const unsigned char *buffer);
+uint64_t			whirlpool_transform(const uint64_t src[8], int index);
+uint64_t			whirlpool_round_constant(int round);
 
 void				format_digest_output(const t_digest_algorithm *algorithm,
 						const t_digest_options *options,
