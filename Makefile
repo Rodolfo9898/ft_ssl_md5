@@ -4,42 +4,44 @@ CC = cc
 CFLAGS = -Wall -Wextra -Werror -std=c99
 
 INCLUDES = -Iinclude
+OBJDIR = objects
 SRC = \
 	src/main.c \
-	src/core/stdin_tokenize.c \
-	src/core/stdin_tokenize_utils.c \
-	src/core/stdin_commands.c \
-	src/commands/digest/digest_command.c \
-	src/commands/digest/digest_sources.c \
-	src/commands/digest/digest_string.c \
-	src/commands/digest/digest_options.c \
-	src/commands/digest/digest_output.c \
-	src/commands/digest/md5.c \
-	src/commands/digest/md5_algo.c \
-	src/commands/digest/sha256.c \
-	src/commands/digest/sha256_algo.c \
-	src/commands/digest/whirlpool.c \
-	src/commands/digest/whirlpool_round.c \
-	src/commands/digest/whirlpool_algo.c \
+	src/core/stdin/tokenize.c \
+	src/core/stdin/tokenize_utils.c \
+	src/core/stdin/commands.c \
+	src/commands/pipeline/command.c \
+	src/commands/pipeline/sources.c \
+	src/commands/pipeline/string.c \
+	src/commands/pipeline/options.c \
+	src/commands/pipeline/output.c \
+	src/commands/md5/command.c \
+	src/commands/md5/algo.c \
+	src/commands/sha256/command.c \
+	src/commands/sha256/algo.c \
+	src/commands/whirlpool/command.c \
+	src/commands/whirlpool/round.c \
+	src/commands/whirlpool/algo.c \
 	src/commands/help_command.c \
 	src/core/command_registry.c \
 	src/core/io.c \
-	src/core/output.c \
-	src/core/output_extra.c \
+	src/core/output/base.c \
+	src/core/output/extra.c \
 	src/core/utils.c \
 	src/core/memory.c
-OBJ = $(SRC:.c=.o)
+OBJ = $(patsubst src/%.c,$(OBJDIR)/%.o,$(SRC))
 
 all: $(NAME)
 
 $(NAME): $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
 
-%.o: %.c
+$(OBJDIR)/%.o: src/%.c
+	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:
-	rm -f $(OBJ)
+	rm -rf $(OBJDIR)
 
 fclean: clean
 	rm -f $(NAME)
