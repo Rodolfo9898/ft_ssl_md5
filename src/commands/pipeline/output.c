@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-#include <unistd.h>
 
 static void	write_label(const char *label, size_t label_len)
 {

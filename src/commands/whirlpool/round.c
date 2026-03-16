@@ -1,19 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   whirlpool_round.c                                  :+:      :+:    :+:   */
+/*   round.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:42 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/15 23:27:43 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/03/16 21:43:20 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-
-uint64_t	whirlpool_transform(const uint64_t src[8], int index);
-uint64_t	whirlpool_round_constant(int round);
 
 void	whirlpool_init_round_key(int round, uint64_t (*c)[256], uint64_t *rc)
 {

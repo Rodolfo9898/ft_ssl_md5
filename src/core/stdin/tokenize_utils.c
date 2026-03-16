@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-#include <stdlib.h>
 
 static int	grow_token(t_split_state *state)
 {

@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-#include <stdlib.h>
 
 static int	is_space(char c)
 {

@@ -11,9 +11,6 @@
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-#include <errno.h>
-#include <string.h>
-#include <unistd.h>
 
 int	write_all(int fd, const void *data, size_t len)
 {

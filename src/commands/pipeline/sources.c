@@ -11,8 +11,6 @@
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-#include <errno.h>
-#include <unistd.h>
 
 static size_t	trimmed_label_len(const t_buffer *buffer)
 {

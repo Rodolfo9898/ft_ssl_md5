@@ -6,15 +6,11 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:07:38 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/15 23:07:39 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/03/16 21:42:44 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-
-const t_digest_algorithm	*get_md5_algorithm(void);
-const t_digest_algorithm	*get_sha256_algorithm(void);
-const t_digest_algorithm	*get_whirlpool_algorithm(void);
 
 const t_command	*get_command_table(size_t *count)
 {

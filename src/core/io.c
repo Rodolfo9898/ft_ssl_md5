@@ -11,10 +11,6 @@
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-#include <errno.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <unistd.h>
 
 static int	grow_buffer(t_buffer *buffer, size_t len)
 {

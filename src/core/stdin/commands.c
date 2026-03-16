@@ -11,8 +11,6 @@
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-#include <stdlib.h>
-#include <unistd.h>
 
 void	free_argv_tokens(char **argv, int argc)
 {

@@ -6,13 +6,11 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:48 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/16 21:07:08 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/03/16 21:43:26 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-
-void	whirlpool_init_round_key(int round, uint64_t (*c)[256], uint64_t *rc);
 
 static t_whirlpool_tables	g_whirlpool_tables = {
 {

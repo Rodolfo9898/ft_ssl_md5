@@ -1,20 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   sha256_algo.c                                      :+:      :+:    :+:   */
+/*   algo.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:31 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/15 23:44:15 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/03/16 21:43:03 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-#include <errno.h>
-#include <stdlib.h>
-
-void	sha256_process_block(t_sha256_ctx *ctx, const unsigned char *block);
 
 static void	write_u32_be(unsigned char *dst, uint32_t value)
 {

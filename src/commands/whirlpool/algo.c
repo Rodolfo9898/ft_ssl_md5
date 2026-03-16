@@ -1,19 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   whirlpool_algo.c                                   :+:      :+:    :+:   */
+/*   algo.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:39 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/15 23:42:32 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/03/16 21:43:09 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-
-void	whirlpool_init_tables(void);
-void	whirlpool_process_buffer(uint64_t hash[8], const unsigned char *buffer);
 
 static void	build_length(unsigned char bit_length[32], size_t len)
 {
