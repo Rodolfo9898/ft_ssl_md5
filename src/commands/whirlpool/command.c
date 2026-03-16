@@ -45,32 +45,30 @@ static t_whirlpool_tables	*whirlpool_tables(void)
 
 static uint64_t	build_entry(int x)
 {
-	t_whirlpool_tables	*tables;
-	uint32_t			v[6];
-	uint16_t			c;
-	uint64_t			entry;
+	uint32_t	s;
+	uint32_t	v1;
+	uint32_t	v2;
+	uint32_t	v4;
+	uint64_t	entry;
 
-	tables = whirlpool_tables();
-	c = tables->sbox_words[x / 2];
+	s = whirlpool_tables()->sbox_words[x / 2];
 	if ((x % 2) == 0)
-		v[0] = c >> 8;
+		s >>= 8;
 	else
-		v[0] = c & 0xFF;
-	v[1] = v[0] << 1;
-	if (v[1] >= 0x100)
-		v[1] ^= 0x11D;
-	v[2] = v[1] << 1;
-	if (v[2] >= 0x100)
-		v[2] ^= 0x11D;
-	v[3] = v[2] ^ v[0];
-	v[4] = v[2] << 1;
-	if (v[4] >= 0x100)
-		v[4] ^= 0x11D;
-	v[5] = v[4] ^ v[0];
-	entry = ((uint64_t)v[0] << 56) | ((uint64_t)v[0] << 48);
-	entry |= ((uint64_t)v[2] << 40) | ((uint64_t)v[0] << 32);
-	entry |= ((uint64_t)v[4] << 24) | ((uint64_t)v[3] << 16);
-	entry |= ((uint64_t)v[1] << 8) | (uint64_t)v[5];
+		s &= 0xFF;
+	v1 = s << 1;
+	if (v1 >= 0x100)
+		v1 ^= 0x11D;
+	v2 = v1 << 1;
+	if (v2 >= 0x100)
+		v2 ^= 0x11D;
+	v4 = v2 << 1;
+	if (v4 >= 0x100)
+		v4 ^= 0x11D;
+	entry = ((uint64_t)s << 56) | ((uint64_t)s << 48);
+	entry |= ((uint64_t)v2 << 40) | ((uint64_t)s << 32);
+	entry |= ((uint64_t)v4 << 24) | ((uint64_t)(v2 ^ s) << 16);
+	entry |= ((uint64_t)v1 << 8) | (uint64_t)(v4 ^ s);
 	return (entry);
 }
 
