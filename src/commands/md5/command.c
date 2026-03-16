@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:27 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/16 00:16:52 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/03/16 21:04:19 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,11 @@ static const t_md5_tables	g_md5_tables = {
 }
 };
 
+static const t_md5_tables	*md5_tables(void)
+{
+	return (&g_md5_tables);
+}
+
 static uint32_t	left_rotate(uint32_t value, uint32_t shift)
 {
 	return ((value << shift) | (value >> (32 - shift)));
@@ -52,9 +57,11 @@ static uint32_t	read_u32_le(const unsigned char *src)
 
 static void	round_step(int index, uint32_t state[4], const uint32_t words[16])
 {
-	uint32_t	f;
-	uint32_t	g;
+	const t_md5_tables	*tables;
+	uint32_t			f;
+	uint32_t			g;
 
+	tables = md5_tables();
 	if (index < 16)
 		f = (state[1] & state[2]) | ((~state[1]) & state[3]);
 	else if (index < 32)
@@ -70,11 +77,11 @@ static void	round_step(int index, uint32_t state[4], const uint32_t words[16])
 		g = (uint32_t)((3 * index + 5) % 16);
 	else if (index >= 48)
 		g = (uint32_t)((7 * index) % 16);
-	f += state[0] + g_md5_tables.k[index] + words[g];
+	f += state[0] + tables->k[index] + words[g];
 	state[0] = state[3];
 	state[3] = state[2];
 	state[2] = state[1];
-	state[1] += left_rotate(f, g_md5_tables.s[index]);
+	state[1] += left_rotate(f, tables->s[index]);
 }
 
 void	md5_process_block(t_md5_ctx *ctx, const unsigned char *block)

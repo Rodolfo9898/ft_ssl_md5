@@ -15,6 +15,21 @@
 uint64_t	whirlpool_transform(const uint64_t src[8], int index);
 uint64_t	whirlpool_round_constant(int round);
 
+void	whirlpool_init_round_key(int round, uint64_t (*c)[256], uint64_t *rc)
+{
+	int	i;
+
+	i = 8 * (round - 1);
+	rc[round] = c[0][i] & 0xFF00000000000000;
+	rc[round] ^= c[1][i + 1] & 0x00FF000000000000;
+	rc[round] ^= c[2][i + 2] & 0x0000FF0000000000;
+	rc[round] ^= c[3][i + 3] & 0x000000FF00000000;
+	rc[round] ^= c[4][i + 4] & 0x00000000FF000000;
+	rc[round] ^= c[5][i + 5] & 0x0000000000FF0000;
+	rc[round] ^= c[6][i + 6] & 0x000000000000FF00;
+	rc[round] ^= c[7][i + 7] & 0x00000000000000FF;
+}
+
 static uint64_t	read_word(const unsigned char *buffer, int block_index)
 {
 	uint64_t	word;

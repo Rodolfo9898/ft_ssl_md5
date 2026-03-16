@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:35 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/16 00:17:19 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/03/16 21:03:16 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,15 +33,14 @@ static const t_sha256_tables	g_sha256_tables = {
 }
 };
 
+static const t_sha256_tables	*sha256_tables(void)
+{
+	return (&g_sha256_tables);
+}
+
 static uint32_t	right_rotate(uint32_t value, uint32_t shift)
 {
 	return ((value >> shift) | (value << (32 - shift)));
-}
-
-static uint32_t	read_u32_be(const unsigned char *src)
-{
-	return (((uint32_t)src[0] << 24) | ((uint32_t)src[1] << 16)
-		| ((uint32_t)src[2] << 8) | (uint32_t)src[3]);
 }
 
 static void	build_schedule(uint32_t words[64], const unsigned char *block)
@@ -51,7 +50,12 @@ static void	build_schedule(uint32_t words[64], const unsigned char *block)
 
 	index = -1;
 	while (++index < 16)
-		words[index] = read_u32_be(block + (index * 4));
+	{
+		words[index] = ((uint32_t)block[index * 4] << 24);
+		words[index] |= ((uint32_t)block[index * 4 + 1] << 16);
+		words[index] |= ((uint32_t)block[index * 4 + 2] << 8);
+		words[index] |= (uint32_t)block[index * 4 + 3];
+	}
 	while (index < 64)
 	{
 		tmp[0] = right_rotate(words[index - 15], 7);
@@ -68,13 +72,15 @@ static void	build_schedule(uint32_t words[64], const unsigned char *block)
 
 static void	round_step(uint32_t state[8], uint32_t word, int index)
 {
-	uint32_t	tmp[2];
+	const t_sha256_tables	*tables;
+	uint32_t				tmp[2];
 
+	tables = sha256_tables();
 	tmp[0] = state[7];
-	tmp[0] += right_rotate(state[4], 6) ^ right_rotate(state[4], 11)
-		^ right_rotate(state[4], 25);
+	tmp[0] += right_rotate(state[4], 6) ^ right_rotate(state[4], 11);
+	tmp[0] += right_rotate(state[4], 25);
 	tmp[0] += (state[4] & state[5]) ^ ((~state[4]) & state[6]);
-	tmp[0] += g_sha256_tables.k[index] + word;
+	tmp[0] += tables->k[index] + word;
 	tmp[1] = right_rotate(state[0], 2) ^ right_rotate(state[0], 13);
 	tmp[1] ^= right_rotate(state[0], 22);
 	tmp[1] += (state[0] & state[1]) ^ (state[0] & state[2]);

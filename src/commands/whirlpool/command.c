@@ -6,11 +6,13 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:48 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/16 19:13:28 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/03/16 21:07:08 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
+
+void	whirlpool_init_round_key(int round, uint64_t (*c)[256], uint64_t *rc);
 
 static t_whirlpool_tables	g_whirlpool_tables = {
 {
@@ -36,13 +38,20 @@ static t_whirlpool_tables	g_whirlpool_tables = {
 	0
 };
 
+static t_whirlpool_tables	*whirlpool_tables(void)
+{
+	return (&g_whirlpool_tables);
+}
+
 static uint64_t	build_entry(int x)
 {
-	uint32_t	v[6];
-	uint16_t	c;
-	uint64_t	entry;
+	t_whirlpool_tables	*tables;
+	uint32_t			v[6];
+	uint16_t			c;
+	uint64_t			entry;
 
-	c = g_whirlpool_tables.sbox_words[x / 2];
+	tables = whirlpool_tables();
+	c = tables->sbox_words[x / 2];
 	if ((x % 2) == 0)
 		v[0] = c >> 8;
 	else
@@ -65,59 +74,46 @@ static uint64_t	build_entry(int x)
 	return (entry);
 }
 
-static void	init_round_key(int round, uint64_t (*c)[256], uint64_t *rc)
-{
-	int	i;
-
-	i = 8 * (round - 1);
-	rc[round] = c[0][i] & 0xFF00000000000000;
-	rc[round] ^= c[1][i + 1] & 0x00FF000000000000;
-	rc[round] ^= c[2][i + 2] & 0x0000FF0000000000;
-	rc[round] ^= c[3][i + 3] & 0x000000FF00000000;
-	rc[round] ^= c[4][i + 4] & 0x00000000FF000000;
-	rc[round] ^= c[5][i + 5] & 0x0000000000FF0000;
-	rc[round] ^= c[6][i + 6] & 0x000000000000FF00;
-	rc[round] ^= c[7][i + 7] & 0x00000000000000FF;
-}
-
 void	whirlpool_init_tables(void)
 {
-	t_whirlpool_tables	*t;
+	t_whirlpool_tables	*tables;
 	int					x;
 	int					idx;
 	int					round;
 
-	t = &g_whirlpool_tables;
-	if (t->initialized)
+	tables = whirlpool_tables();
+	if (tables->initialized)
 		return ;
 	x = -1;
 	while (++x < 256)
 	{
-		t->c[0][x] = build_entry(x);
+		tables->c[0][x] = build_entry(x);
 		idx = 0;
 		while (++idx < 8)
-			t->c[idx][x] = (t->c[idx - 1][x] >> 8) | (t->c[idx - 1][x] << 56);
+			tables->c[idx][x] = (tables->c[idx - 1][x] >> 8)
+				| (tables->c[idx - 1][x] << 56);
 	}
-	t->rc[0] = 0;
+	tables->rc[0] = 0;
 	round = 0;
 	while (++round <= 10)
-		init_round_key(round, t->c, t->rc);
-	t->initialized = 1;
+		whirlpool_init_round_key(round, tables->c, tables->rc);
+	tables->initialized = 1;
 }
 
 uint64_t	whirlpool_transform(const uint64_t src[8], int index)
 {
-	uint64_t	value;
-	int			shift;
-	int			table;
+	t_whirlpool_tables	*tables;
+	uint64_t			value;
+	int					shift;
+	int					table;
 
+	tables = whirlpool_tables();
 	value = 0;
 	shift = 56;
 	table = 0;
 	while (table < 8)
 	{
-		value ^= g_whirlpool_tables.c[table][(src[(index - table) & 7]
-				>> shift) & 0xFF];
+		value ^= tables->c[table][(src[(index - table) & 7] >> shift) & 0xFF];
 		table++;
 		shift -= 8;
 	}
@@ -126,5 +122,5 @@ uint64_t	whirlpool_transform(const uint64_t src[8], int index)
 
 uint64_t	whirlpool_round_constant(int round)
 {
-	return (g_whirlpool_tables.rc[round]);
+	return (whirlpool_tables()->rc[round]);
 }
