@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:48 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/16 00:20:42 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/03/16 19:13:28 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,49 +65,44 @@ static uint64_t	build_entry(int x)
 	return (entry);
 }
 
-static void	init_column(int x)
+static void	init_round_key(int round, uint64_t (*c)[256], uint64_t *rc)
 {
-	int	idx;
+	int	i;
 
-	g_whirlpool_tables.c[0][x] = build_entry(x);
-	idx = 0;
-	while (++idx < 8)
-		g_whirlpool_tables.c[idx][x] = (g_whirlpool_tables.c[idx - 1][x] >> 8)
-			| (g_whirlpool_tables.c[idx - 1][x] << 56);
+	i = 8 * (round - 1);
+	rc[round] = c[0][i] & 0xFF00000000000000;
+	rc[round] ^= c[1][i + 1] & 0x00FF000000000000;
+	rc[round] ^= c[2][i + 2] & 0x0000FF0000000000;
+	rc[round] ^= c[3][i + 3] & 0x000000FF00000000;
+	rc[round] ^= c[4][i + 4] & 0x00000000FF000000;
+	rc[round] ^= c[5][i + 5] & 0x0000000000FF0000;
+	rc[round] ^= c[6][i + 6] & 0x000000000000FF00;
+	rc[round] ^= c[7][i + 7] & 0x00000000000000FF;
 }
 
 void	whirlpool_init_tables(void)
 {
-	int	index[2];
+	t_whirlpool_tables	*t;
+	int					x;
+	int					idx;
+	int					round;
 
-	if (g_whirlpool_tables.initialized)
+	t = &g_whirlpool_tables;
+	if (t->initialized)
 		return ;
-	index[0] = -1;
-	while (++index[0] < 256)
-		init_column(index[0]);
-	g_whirlpool_tables.rc[0] = 0;
-	index[0] = 0;
-	while (++index[0] <= 10)
+	x = -1;
+	while (++x < 256)
 	{
-		index[1] = 8 * (index[0] - 1);
-		g_whirlpool_tables.rc[index[0]] = g_whirlpool_tables.c[0][index[1]]
-			& 0xFF00000000000000;
-		g_whirlpool_tables.rc[index[0]] ^= g_whirlpool_tables.c[1][index[1] + 1]
-			& 0x00FF000000000000;
-		g_whirlpool_tables.rc[index[0]] ^= g_whirlpool_tables.c[2][index[1] + 2]
-			& 0x0000FF0000000000;
-		g_whirlpool_tables.rc[index[0]] ^= g_whirlpool_tables.c[3][index[1] + 3]
-			& 0x000000FF00000000;
-		g_whirlpool_tables.rc[index[0]] ^= g_whirlpool_tables.c[4][index[1] + 4]
-			& 0x00000000FF000000;
-		g_whirlpool_tables.rc[index[0]] ^= g_whirlpool_tables.c[5][index[1] + 5]
-			& 0x0000000000FF0000;
-		g_whirlpool_tables.rc[index[0]] ^= g_whirlpool_tables.c[6][index[1] + 6]
-			& 0x000000000000FF00;
-		g_whirlpool_tables.rc[index[0]] ^= g_whirlpool_tables.c[7][index[1] + 7]
-			& 0x00000000000000FF;
+		t->c[0][x] = build_entry(x);
+		idx = 0;
+		while (++idx < 8)
+			t->c[idx][x] = (t->c[idx - 1][x] >> 8) | (t->c[idx - 1][x] << 56);
 	}
-	g_whirlpool_tables.initialized = 1;
+	t->rc[0] = 0;
+	round = 0;
+	while (++round <= 10)
+		init_round_key(round, t->c, t->rc);
+	t->initialized = 1;
 }
 
 uint64_t	whirlpool_transform(const uint64_t src[8], int index)
