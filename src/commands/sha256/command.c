@@ -74,17 +74,21 @@ static void	round_step(uint32_t state[8], uint32_t word, int index)
 {
 	const t_sha256_tables	*tables;
 	uint32_t				tmp[2];
+	uint32_t				maj;
+	uint32_t				sigma1;
 
 	tables = sha256_tables();
+	sigma1 = right_rotate(state[4], 6) ^ right_rotate(state[4], 11);
+	sigma1 ^= right_rotate(state[4], 25);
 	tmp[0] = state[7];
-	tmp[0] += right_rotate(state[4], 6) ^ right_rotate(state[4], 11);
-	tmp[0] += right_rotate(state[4], 25);
+	tmp[0] += sigma1;
 	tmp[0] += (state[4] & state[5]) ^ ((~state[4]) & state[6]);
 	tmp[0] += tables->k[index] + word;
+	maj = (state[0] & state[1]) ^ (state[0] & state[2]);
+	maj ^= state[1] & state[2];
 	tmp[1] = right_rotate(state[0], 2) ^ right_rotate(state[0], 13);
 	tmp[1] ^= right_rotate(state[0], 22);
-	tmp[1] += (state[0] & state[1]) ^ (state[0] & state[2]);
-	tmp[1] += state[1] & state[2];
+	tmp[1] += maj;
 	state[7] = state[6];
 	state[6] = state[5];
 	state[5] = state[4];
