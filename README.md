@@ -305,9 +305,4 @@ circulant row are the only data written by hand.
 - Norminette - https://github.com/42School/norminette
 - Valgrind - https://valgrind.org/docs/manual/manual.html
 
-**Use of AI.** An AI assistant (Claude) reviewed the project against the subject,
-pointed out what failed (a missing file made the command read its standard input, I/O
-errors were not reported, the bonus reader did not start without a command), fixed it,
-then restructured the build and the sources like the author's other projects and wrote
-the tests, the Docker image and this README. Every change was checked by the tests, in
-Docker too.
+**Use of AI.** An AI assistant (Claude) was used for review,it checked the finished library against the subject and the Norm, pointed out failures and explained why they did not match the subject.
