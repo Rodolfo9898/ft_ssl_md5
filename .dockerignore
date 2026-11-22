@@ -1,0 +1,12 @@
+# Build output and local leftovers stay out of the image: it builds from scratch.
+.git
+ft_ssl
+ft_ssl_bonus
+objects/
+objects_bonus/
+**/*.o
+**/*.a
+**/*.d
+test_out/
+verdict.md
+verdict-report.md

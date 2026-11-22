@@ -1,0 +1,30 @@
+# Build output
+/ft_ssl
+/ft_ssl_bonus
+/objects/
+/objects_bonus/
+*.o
+*.a
+*.d
+
+# Debug, sanitizer and test leftovers
+*.dSYM/
+*.log
+a.out
+# Only at the root: a plain "core" would also ignore include/core/
+/core
+vgcore.*
+test_out/
+
+# Editors and OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~
+.cache/
+compile_commands.json
+
+# Evaluation reports
+verdict.md
+verdict-report.md

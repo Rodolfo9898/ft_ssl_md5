@@ -3,25 +3,29 @@
 /*                                                        :::      ::::::::   */
 /*   structs.h                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rperez-t <rperez-t@student.42belgium.be    +#+  +:+       +#+        */
+/*   By: rperez-t <rperez-t@student.42belgium.be>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/16 21:55:00 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/03/16 21:37:22 by rperez-t         ###   ########.fr       */
+/*   Created: 2026/03/16 21:52:58 by rperez-t          #+#    #+#             */
+/*   Updated: 2026/11/22 16:57:15 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef STRUCTS_H
 # define STRUCTS_H
 
+# include "defines.h"
 # include "libs.h"
-# include "enum.h"
+# include "enums.h"
 
+/*
+** One row of the command table: its name, its family, and the function that
+** runs it with the arguments after the name.
+*/
 typedef struct s_command
 {
-	const char		*name;
+	char			*name;
 	t_command_group	group;
-	int				(*handler)(const struct s_command *c, int ac, char **av);
-	const void		*data;
+	int				(*handler)(int argc, char **argv);
 }	t_command;
 
 typedef struct s_buffer
@@ -31,12 +35,13 @@ typedef struct s_buffer
 	size_t			capacity;
 }	t_buffer;
 
+/* A hash: its command, the name it prints, its size, and the function */
 typedef struct s_digest_algorithm
 {
-	const char	*name;
-	const char	*display_name;
-	size_t		digest_size;
-	int			(*compute)(const unsigned char *data, size_t len,
+	char	*name;
+	char	*display_name;
+	size_t	digest_size;
+	int		(*compute)(const unsigned char *data, size_t len,
 			unsigned char *digest);
 }	t_digest_algorithm;
 
@@ -48,42 +53,38 @@ typedef struct s_digest_options
 
 typedef struct s_md5_ctx
 {
-	uint32_t	a;
-	uint32_t	b;
-	uint32_t	c;
-	uint32_t	d;
+	uint32_t	h[MD5_STATE_WORDS];
 }	t_md5_ctx;
 
 typedef struct s_sha256_ctx
 {
-	uint32_t	h[8];
+	uint32_t	h[SHA256_STATE_WORDS];
 }	t_sha256_ctx;
 
+/*
+** RFC 1321: the constant T of each step, then for each round its shifts, its
+** first word and its word stride.
+*/
 typedef struct s_md5_tables
 {
-	uint32_t	s[64];
-	uint32_t	k[64];
+	uint32_t	t[MD5_STEPS];
+	uint32_t	shift[MD5_ROUNDS][MD5_SHIFTS_PER_ROUND];
+	uint32_t	first_word[MD5_ROUNDS];
+	uint32_t	word_stride[MD5_ROUNDS];
 }	t_md5_tables;
 
 typedef struct s_sha256_tables
 {
-	uint32_t	k[64];
+	uint32_t	k[SHA256_ROUNDS];
 }	t_sha256_tables;
 
-typedef struct s_whirlpool_tables
-{
-	uint16_t	sbox_words[128];
-	uint64_t	c[8][256];
-	uint64_t	rc[11];
-	int			initialized;
-}	t_whirlpool_tables;
-
+/* One digest command while it runs: its flags, and what it has done */
 typedef struct s_digest_runtime
 {
 	const t_digest_algorithm	*algorithm;
 	t_digest_options			options;
 	int							parsed_operand;
-	int							processed_any;
+	int							source_given;
 	int							had_error;
 	int							stdin_loaded;
 	t_buffer					stdin_buffer;
@@ -97,6 +98,22 @@ typedef struct s_digest_print
 	const unsigned char		*digest;
 }	t_digest_print;
 
+/* Only with -D BONUS_MODE=1: whirlpool, and the words of the command reader */
+# if BONUS_MODE
+
+/*
+** The S-box, the first row of the circulant matrix C, and what they give: the
+** eight tables, and the constant of each round (rc[0] is unused).
+*/
+typedef struct s_whirlpool_tables
+{
+	uint8_t		sbox[SBOX_SIZE];
+	uint8_t		circulant[WHIRLPOOL_WORD_SIZE];
+	uint64_t	c[WHIRLPOOL_TABLES][SBOX_SIZE];
+	uint64_t	rc[WHIRLPOOL_ROUNDS + 1];
+	int			initialized;
+}	t_whirlpool_tables;
+
 typedef struct s_split_state
 {
 	char	**argv;
@@ -108,5 +125,7 @@ typedef struct s_split_state
 	int		argv_capacity;
 	char	quote;
 }	t_split_state;
+
+# endif
 
 #endif
