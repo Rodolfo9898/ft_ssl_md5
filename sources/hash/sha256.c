@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:31 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/11/22 16:57:15 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:29:45 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,16 +19,18 @@ static void	write_state_be(unsigned char *digest, const uint32_t *state)
 	int			byte;
 	uint32_t	value;
 
-	word = -1;
-	while (++word < SHA256_STATE_WORDS)
+	word = 0;
+	while (word < SHA256_STATE_WORDS)
 	{
 		value = state[word];
-		byte = WORD_SIZE;
-		while (byte-- > 0)
+		byte = WORD_SIZE - 1;
+		while (byte >= 0)
 		{
-			digest[word * WORD_SIZE + byte] = value & BYTE_MASK;
-			value >>= BYTE_BITS;
+			digest[word * WORD_SIZE + byte] = value % BYTE_RANGE;
+			value /= BYTE_RANGE;
+			byte--;
 		}
+		word++;
 	}
 }
 

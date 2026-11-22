@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/22 15:54:21 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/11/22 16:10:55 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:29:45 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,10 @@ static void	write_length(unsigned char *dst, uint64_t bit_len,
 	while (index < LENGTH_SIZE)
 	{
 		if (order == ORDER_BIG_ENDIAN)
-			dst[LENGTH_SIZE - 1 - index] = (unsigned char)(bit_len & BYTE_MASK);
+			dst[LENGTH_SIZE - 1 - index] = bit_len % BYTE_RANGE;
 		else
-			dst[index] = (unsigned char)(bit_len & BYTE_MASK);
-		bit_len >>= BYTE_BITS;
+			dst[index] = bit_len % BYTE_RANGE;
+		bit_len /= BYTE_RANGE;
 		index++;
 	}
 }
@@ -47,7 +47,10 @@ unsigned char	*pad_message(const unsigned char *data, size_t len,
 	*padded_len = new_len + LENGTH_SIZE;
 	buffer = (unsigned char *)malloc(*padded_len);
 	if (buffer == NULL)
-		return (errno = ENOMEM, NULL);
+	{
+		errno = ENOMEM;
+		return (NULL);
+	}
 	if (len > 0)
 		ft_memcpy(buffer, data, len);
 	ft_bzero(buffer + len, new_len - len);

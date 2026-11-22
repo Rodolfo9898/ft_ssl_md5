@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:39 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/11/22 16:10:55 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:29:45 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,8 @@ static void	build_length(unsigned char *bit_length, size_t len)
 	index = 0;
 	while (index < LENGTH_SIZE)
 	{
-		bit_length[WHIRLPOOL_LENGTH_SIZE - 1 - index] = bits & BYTE_MASK;
-		bits >>= BYTE_BITS;
+		bit_length[WHIRLPOOL_LENGTH_SIZE - 1 - index] = bits % BYTE_RANGE;
+		bits /= BYTE_RANGE;
 		index++;
 	}
 }
@@ -44,7 +44,7 @@ static void	process_tail(uint64_t *hash, unsigned char *block,
 	ft_bzero(block, BLOCK_SIZE);
 	if (tail[TAIL_LEN] > 0)
 		ft_memcpy(block, data + tail[TAIL_START], tail[TAIL_LEN]);
-	block[tail[TAIL_LEN]] |= PAD_BYTE;
+	block[tail[TAIL_LEN]] = PAD_BYTE;
 	if (tail[TAIL_LEN] + 1 > BLOCK_SIZE - WHIRLPOOL_LENGTH_SIZE)
 	{
 		whirlpool_process_buffer(hash, block);
@@ -63,16 +63,18 @@ static void	write_digest(unsigned char *digest, const uint64_t *hash)
 	int			byte;
 	uint64_t	value;
 
-	word = -1;
-	while (++word < WHIRLPOOL_WORDS)
+	word = 0;
+	while (word < WHIRLPOOL_WORDS)
 	{
 		value = hash[word];
-		byte = WHIRLPOOL_WORD_SIZE;
-		while (byte-- > 0)
+		byte = WHIRLPOOL_WORD_SIZE - 1;
+		while (byte >= 0)
 		{
-			digest[word * WHIRLPOOL_WORD_SIZE + byte] = value & BYTE_MASK;
-			value >>= BYTE_BITS;
+			digest[word * WHIRLPOOL_WORD_SIZE + byte] = value % BYTE_RANGE;
+			value /= BYTE_RANGE;
+			byte--;
 		}
+		word++;
 	}
 }
 

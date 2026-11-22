@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:09 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/11/22 16:10:55 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:05:35 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,9 +26,7 @@ static int	process_digest_string(t_digest_runtime *runtime, char *value)
 	print.label = value;
 	print.label_len = buffer.len;
 	print.digest = NULL;
-	if (!digest_and_print(runtime, &print, &buffer))
-		return (runtime->had_error = 1, 0);
-	return (1);
+	return (digest_and_print(runtime, &print, &buffer));
 }
 
 static int	process_string_option(t_digest_runtime *runtime, int argc,
@@ -50,16 +48,23 @@ static int	process_string_option(t_digest_runtime *runtime, int argc,
 static int	handle_digest_arg(t_digest_runtime *runtime, int argc,
 	char **argv, int *index)
 {
-	if (ft_strncmp(argv[*index], FLAG_PRINT, sizeof(FLAG_PRINT)) == 0)
+	char	*arg;
+
+	arg = argv[*index];
+	if (ft_strncmp(arg, FLAG_PRINT, sizeof(FLAG_PRINT)) == 0)
 		return (process_digest_stdin(runtime, DIGEST_SOURCE_STDIN_P));
-	if (ft_strncmp(argv[*index], FLAG_QUIET, sizeof(FLAG_QUIET)) == 0)
-		return (runtime->options.quiet = 1, 1);
-	if (ft_strncmp(argv[*index], FLAG_REVERSE, sizeof(FLAG_REVERSE)) == 0)
-		return (runtime->options.reverse = 1, 1);
-	if (ft_strncmp(argv[*index], FLAG_STRING, sizeof(FLAG_STRING)) == 0)
+	if (ft_strncmp(arg, FLAG_STRING, sizeof(FLAG_STRING)) == 0)
 		return (process_string_option(runtime, argc, argv, index));
-	runtime->parsed_operand = 1;
-	return (process_digest_file(runtime, argv[*index]));
+	if (ft_strncmp(arg, FLAG_QUIET, sizeof(FLAG_QUIET)) == 0)
+		runtime->options.quiet = 1;
+	else if (ft_strncmp(arg, FLAG_REVERSE, sizeof(FLAG_REVERSE)) == 0)
+		runtime->options.reverse = 1;
+	else
+	{
+		runtime->parsed_operand = 1;
+		return (process_digest_file(runtime, arg));
+	}
+	return (1);
 }
 
 /*

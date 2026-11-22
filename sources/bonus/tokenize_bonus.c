@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:08:55 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/11/22 16:10:55 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:05:35 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ static int	is_space(char c)
 		|| c == '\v' || c == '\f');
 }
 
+/* \ and the character after it: the character is kept as it is */
 static int	append_escaped(const char *line, t_split_state *state)
 {
 	state->index++;
@@ -30,27 +31,36 @@ static int	append_escaped(const char *line, t_split_state *state)
 	return (1);
 }
 
+/*
+** One character of a word: a quote opens or closes a quoted part, \ escapes
+** the next character, anything else is kept. 0 when malloc failed.
+*/
+static int	parse_char(const char *line, t_split_state *state)
+{
+	char	c;
+
+	c = line[state->index];
+	if (c == '\\' && line[state->index + 1] != '\0')
+		return (append_escaped(line, state));
+	if (state->quote == 0 && (c == '\'' || c == '"'))
+		state->quote = c;
+	else if (state->quote != 0 && c == state->quote)
+		state->quote = 0;
+	else if (!split_append_char(state, c))
+		return (0);
+	state->index++;
+	return (1);
+}
+
+/* One word, up to a space outside quotes or the end of the line */
 static int	parse_token(const char *line, t_split_state *state)
 {
 	state->len = 0;
 	state->quote = 0;
-	while (line[state->index]
-		&& (state->quote || !is_space(line[state->index])))
+	while (line[state->index] != '\0'
+		&& (state->quote != 0 || !is_space(line[state->index])))
 	{
-		if (!state->quote && (line[state->index] == '\''
-				|| line[state->index] == '"'))
-			state->quote = line[state->index++];
-		else if (state->quote && line[state->index] == state->quote)
-		{
-			state->quote = 0;
-			state->index++;
-		}
-		else if (line[state->index] == '\\' && line[state->index + 1])
-		{
-			if (!append_escaped(line, state))
-				return (0);
-		}
-		else if (!split_append_char(state, line[state->index++]))
+		if (!parse_char(line, state))
 			return (0);
 	}
 	return (split_append_token(state));

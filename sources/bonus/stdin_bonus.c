@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:06:17 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/11/22 16:10:55 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:05:35 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,35 +15,37 @@
 /* Only with -D BONUS_MODE=1 (make bonus): see include/core/defines.h */
 #if BONUS_MODE
 
+/* A failed read() or malloc while reading a command: say so, then stop */
+static t_reader_status	reader_error(void)
+{
+	print_system_error(NULL, "stdin");
+	return (READER_ERROR);
+}
+
 /*
 ** One byte per read(): the command reader must not take more than its line
 ** from the standard input, which a command with -p reads next. READER_CONTINUE:
-** a line is in buffer, READER_STOP: end of the input, READER_ERROR: printed.
+** a line is in buffer, READER_STOP: the input is over, READER_ERROR: printed.
 */
 static t_reader_status	read_command_line(t_buffer *buffer)
 {
 	char	ch;
-	int		has_data;
 	ssize_t	bytes_read;
 
 	buffer->len = 0;
-	has_data = 0;
 	bytes_read = read(STDIN_FILENO, &ch, 1);
-	while (bytes_read > 0)
+	while (bytes_read > 0 && ch != '\n')
 	{
-		has_data = 1;
-		if (ch == '\n')
-			break ;
 		if (!buffer_append(buffer, (unsigned char *)&ch, 1))
-			return (print_system_error(NULL, "stdin"), READER_ERROR);
+			return (reader_error());
 		bytes_read = read(STDIN_FILENO, &ch, 1);
 	}
 	if (bytes_read < 0)
-		return (print_system_error(NULL, "stdin"), READER_ERROR);
-	if (!has_data)
+		return (reader_error());
+	if (bytes_read == 0 && buffer->len == 0)
 		return (READER_STOP);
 	if (!buffer_append(buffer, (unsigned char *)"\0", 1))
-		return (print_system_error(NULL, "stdin"), READER_ERROR);
+		return (reader_error());
 	buffer->len--;
 	return (READER_CONTINUE);
 }
@@ -67,10 +69,7 @@ static t_reader_status	execute_stdin_line(t_buffer *line, int *status)
 	argc = 0;
 	argv = NULL;
 	if (!tokenize_line((const char *)line->data, &argc, &argv))
-	{
-		print_system_error(NULL, "stdin");
-		return (READER_ERROR);
-	}
+		return (reader_error());
 	next = READER_CONTINUE;
 	if (is_exit_command(argv, argc))
 		next = READER_STOP;

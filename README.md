@@ -182,8 +182,8 @@ Makefile             rules only (all, bonus, clean, fclean, re, debug, submodule
 mk/                  everything the Makefile includes
   colors.mk            the output's colours: commands green, errors red, warnings
                        yellow, explanations blue; clean and fclean say what they remove
-  config.mk            names (ft_ssl, ft_ssl_bonus), flags, BONUS_FLAGS, directories,
-                       Docker name
+  config.mk            names (ft_ssl, ft_ssl_bonus), flags (-O2), BONUS_FLAGS,
+                       directories, Docker name
   libs.mk              libft path, and the files its rule depends on
   sources.mk           source list per folder (one list, used by both builds)
 include/
@@ -194,6 +194,11 @@ libs/                libft (git submodule, see above)
 sources/
   main.c               main() and nothing else: the usage (or, in the bonus, the command
                        reader) without a command, else the command
+  bits/                the only bit-level code, under names (see Technical choices)
+                       logic.c     choose, majority, parity, md5_i, xor64: the only
+                                   &, |, ^ and ~ of the program
+                       rotate.c    powers of two, rotations and shifts, as products
+                                   and divisions
   utils/               what every command uses
                        dispatch.c  the command table, its lookup, the list of commands
                        buffer.c    a growing buffer, reading a file or the standard input
@@ -217,7 +222,9 @@ sources/
                          whirlpool_bonus.c         whirlpool from the message to the digest,
                                                    its padding, and its command
                          whirlpool_block_bonus.c   one block (Miyaguchi-Preneel)
-                         whirlpool_tables_bonus.c  the S-box, the tables and one round
+                         whirlpool_build_bonus.c   the tables and round constants,
+                                                   built once from the S-box
+                         whirlpool_tables_bonus.c  the S-box, and one round
 Dockerfile           Linux test image: builds both programs, runs the tests/ scripts
 tests/               setup.sh      helpers (sourced): checks, a stdin that stays open,
                                    valgrind
@@ -254,22 +261,26 @@ above").
 **The constants have the names of the standards.** Every size and constant is defined
 in `include/core/defines.h`, and every set of values is an enum in
 `include/core/enums.h`. The algorithms use the names their specifications give:
-`MD5_INIT_A` to `MD5_INIT_D` and the shifts `MD5_S11` to `MD5_S44` of RFC 1321,
-`SHA256_H0` to `SHA256_H7` of FIPS 180-4, and Whirlpool's `cir(1, 1, 4, 1, 8, 5, 2, 9)`.
-The word of the block that each MD5 step reads is the rule of the RFC (a first word and a
-stride per round), not a table of 64 numbers. What stays a table is what the
-specifications list as one, in the same hexadecimal: T for MD5, K for SHA-256, the S-box
-of Whirlpool. norminette misreads a hexadecimal constant that starts with `0xB`, so those
-are written `0x0B...`, which C reads as the same number.
+`MD5_INIT_A` to `MD5_INIT_D`, the shifts `MD5_S11` to `MD5_S44` and the step
+constants `MD5_T1` to `MD5_T64` of RFC 1321, `SHA256_H0` to `SHA256_H7` and the round
+constants `SHA256_K0` to `SHA256_K63` of FIPS 180-4, and Whirlpool's
+`cir(1, 1, 4, 1, 8, 5, 2, 9)`. Each group says where its values come from, so that they
+can be checked: T[i] is the integer part of 2^32 * |sin(i)|, K and H the first 32 bits of
+the fractional parts of the cube roots of the first 64 primes and of the square roots of
+the first 8. The word of the block that each MD5 step reads is the rule of the RFC (a
+first word and a stride per round), not a table of 64 numbers. Only Whirlpool's S-box
+stays a plain table of 256 bytes, as its specification gives it. norminette misreads a
+hexadecimal constant that starts with `0xB`, so those are written `0x0B...`, which C
+reads as the same number.
 
 **The hashes.** MD5 works on little-endian 32-bit words, SHA-256 on big-endian ones;
 both pad the message the same way (`hash/padding.c`): `0x80`, zeros, then its length in
 bits on 64 bits. Whirlpool builds its eight tables and ten round constants on its first
 round, from the S-box and the circulant row in GF(2^8), then runs a Miyaguchi-Preneel
 compression on 512-bit blocks, with a 256-bit length. Each input is read whole, then
-hashed: simple, and fast enough (for 50 MB, without optimisation flags, about 1 s for
-md5, 1.6 s for sha256 and 4.4 s for whirlpool), at the cost of holding the input and its
-padded copy in memory.
+hashed: simple, and fast enough (for 50 MB, about 0.9 s for md5, 1.4 s for sha256 and
+2.4 s for whirlpool, compiled with `-O2` like fract-ol), at the cost of holding the input
+and its padded copy in memory.
 
 **The bonus never touches the mandatory build.** `make bonus` compiles every file again
 with `-D BONUS_MODE=1` into `objects_bonus/`, and links `ft_ssl_bonus`;
@@ -279,6 +290,26 @@ reader under `if (BONUS_MODE)`: the function is declared in both builds, defined
 the bonus, and the compiler drops the call from the mandatory one. The command table
 adds the whirlpool row under `#if BONUS_MODE`, and the headers keep the bonus functions,
 structures, enums and constants under `# if BONUS_MODE`.
+
+**The bits have names.** The hashes are made of bit operations, and the specifications
+describe them with words: MD5's F "chooses" between two words, SHA-256's Maj takes the
+"majority", a word is "rotated". The code uses the same words. The only `&`, `|`, `^`
+and `~` of the program are in `sources/bits/logic.c`, one small function per idea, each
+explained: `choose(x, y, z)` (x picks, bit by bit, y or z), `majority`, `parity` (XOR of
+three words, which is also SHA-256's sigma functions on three rotations), `md5_i` and
+`xor64`. There is no `<<` or `>>` at all: moving bits is multiplying or dividing by a
+power of two (`sources/bits/rotate.c`), a word is built from its bytes with
+`value * 256 + byte` and taken apart with `% 256` and `/ 256`, and a rotation of 32 bits
+is `value * 2^n` computed on 64 bits, whose low half (`% 2^32`) and high half (`/ 2^32`)
+added together are the turned word. The helpers cost function calls the operators did
+not: with `-O2` the program is still faster than the first version without it.
+
+**One statement, one effect.** No comma operator, no `++` or `--` inside a condition or an
+index, and no chain of `&&` that does the work: every loop is
+`i = 0; while (i < n) { ...; i++; }`, every error is recorded on its own line before the
+`return`, and a line of output is written piece by piece (`put_str(&ok, ...)` in
+`digest/print.c`, which stops writing after the first failure). The only `&&` and `||`
+left are plain tests, such as `c == ' ' || c == '\t'`.
 
 **Errors are never silent.** Every allocation, `open` and `read`, and every write of a
 result, is checked (an error message that cannot be written is not reported again). A

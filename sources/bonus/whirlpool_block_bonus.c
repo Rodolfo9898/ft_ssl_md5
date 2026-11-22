@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:42 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/11/22 16:10:55 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:29:45 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,12 @@ static uint64_t	read_word(const unsigned char *buffer, int word)
 
 	buffer += word * WHIRLPOOL_WORD_SIZE;
 	value = 0;
-	byte = -1;
-	while (++byte < WHIRLPOOL_WORD_SIZE)
-		value = (value << BYTE_BITS) | buffer[byte];
+	byte = 0;
+	while (byte < WHIRLPOOL_WORD_SIZE)
+	{
+		value = value * BYTE_RANGE + buffer[byte];
+		byte++;
+	}
 	return (value);
 }
 
@@ -40,19 +43,26 @@ void	whirlpool_process_buffer(uint64_t *hash, const unsigned char *buffer)
 	uint64_t	state[WHIRLPOOL_WORDS];
 	int			index;
 
-	index = -1;
-	while (++index < WHIRLPOOL_WORDS)
+	index = 0;
+	while (index < WHIRLPOOL_WORDS)
 	{
 		block[index] = read_word(buffer, index);
 		key[index] = hash[index];
-		state[index] = block[index] ^ key[index];
+		state[index] = xor64(block[index], key[index]);
+		index++;
+	}
+	index = 1;
+	while (index <= WHIRLPOOL_ROUNDS)
+	{
+		whirlpool_round(key, state, index);
+		index++;
 	}
 	index = 0;
-	while (++index <= WHIRLPOOL_ROUNDS)
-		whirlpool_round(key, state, index);
-	index = -1;
-	while (++index < WHIRLPOOL_WORDS)
-		hash[index] ^= state[index] ^ block[index];
+	while (index < WHIRLPOOL_WORDS)
+	{
+		hash[index] = xor64(hash[index], xor64(state[index], block[index]));
+		index++;
+	}
 }
 
 #endif

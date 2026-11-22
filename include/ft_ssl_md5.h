@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 16:57:02 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/11/22 16:57:15 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:29:45 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,20 @@ int				read_file(const char *path, t_buffer *buffer);
 int				write_all(int fd, const void *data, size_t len);
 int				write_str(int fd, const char *str);
 void			print_system_error(char *command, char *target);
+
+/* From bits/logic.c: the only bitwise operators, see there */
+uint32_t		choose(uint32_t x, uint32_t y, uint32_t z);
+uint32_t		majority(uint32_t x, uint32_t y, uint32_t z);
+uint32_t		parity(uint32_t x, uint32_t y, uint32_t z);
+uint32_t		md5_i(uint32_t x, uint32_t y, uint32_t z);
+uint64_t		xor64(uint64_t a, uint64_t b);
+
+/* From bits/rotate.c: shifts and rotations, as products and divisions */
+uint64_t		power_of_two(int n);
+uint32_t		rotate_left32(uint32_t value, int n);
+uint32_t		rotate_right32(uint32_t value, int n);
+uint32_t		shift_right32(uint32_t value, int n);
+uint64_t		rotate_right64(uint64_t value, int n);
 
 /* From utils/dispatch.c */
 int				execute_command_argv(int argc, char **argv);
@@ -85,6 +99,9 @@ void			free_argv_tokens(char **argv, int argc);
 
 /* From bonus/whirlpool_bonus.c */
 int				run_whirlpool(int argc, char **argv);
+
+/* From bonus/whirlpool_build_bonus.c */
+void			whirlpool_build(t_whirlpool_tables *t);
 
 /* From bonus/whirlpool_tables_bonus.c */
 void			whirlpool_round(uint64_t *key, uint64_t *state, int round);

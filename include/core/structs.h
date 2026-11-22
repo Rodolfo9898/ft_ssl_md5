@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 21:52:58 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/11/22 16:57:15 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:29:45 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,6 +113,12 @@ typedef struct s_whirlpool_tables
 	uint64_t	rc[WHIRLPOOL_ROUNDS + 1];
 	int			initialized;
 }	t_whirlpool_tables;
+
+/* The eight bytes of each of the eight words of a Whirlpool state */
+typedef struct s_whirlpool_bytes
+{
+	unsigned char	byte[WHIRLPOOL_WORDS][WHIRLPOOL_WORD_SIZE];
+}	t_whirlpool_bytes;
 
 typedef struct s_split_state
 {

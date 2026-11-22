@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 23:27:48 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/11/22 16:57:15 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:29:45 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,117 +61,77 @@ static t_whirlpool_tables	g_whirlpool_tables = {
 	0
 };
 
-/* x times coefficient in GF(2^8): the doublings of x its bits select */
-static uint32_t	gf_multiply(uint32_t x, uint32_t coefficient)
+/* The eight bytes of each word, the least significant first */
+static void	split_words(const uint64_t *words, t_whirlpool_bytes *bytes)
 {
-	uint32_t	product;
+	uint64_t	value;
+	int			word;
+	int			byte;
 
-	product = 0;
-	while (coefficient != 0)
+	word = 0;
+	while (word < WHIRLPOOL_WORDS)
 	{
-		if (coefficient & 1)
-			product ^= x;
-		x <<= 1;
-		if (x >= GF_OVERFLOW)
-			x ^= GF_POLY;
-		coefficient >>= 1;
+		value = words[word];
+		byte = 0;
+		while (byte < WHIRLPOOL_WORD_SIZE)
+		{
+			bytes->byte[word][byte] = value % BYTE_RANGE;
+			value /= BYTE_RANGE;
+			byte++;
+		}
+		word++;
 	}
-	return (product);
 }
 
 /*
-** The entries of the S-box byte x: in the first table, the byte times the
-** circulant row; in each next table, the previous entry rotated by a byte.
+** One word of the round function: table t looks up byte t (from the top) of
+** word index - t, and the eight entries are combined with XOR.
 */
-static void	build_column(t_whirlpool_tables *t, int x)
-{
-	uint32_t	s;
-	int			col;
-	int			table;
-
-	s = t->sbox[x];
-	t->c[0][x] = 0;
-	col = -1;
-	while (++col < WHIRLPOOL_WORD_SIZE)
-		t->c[0][x] = (t->c[0][x] << BYTE_BITS)
-			| gf_multiply(s, t->circulant[col]);
-	table = 0;
-	while (++table < WHIRLPOOL_TABLES)
-		t->c[table][x] = (t->c[table - 1][x] >> BYTE_BITS)
-			| (t->c[table - 1][x] << ((WHIRLPOOL_WORD_SIZE - 1) * BYTE_BITS));
-}
-
-/* The tables, then the constant of each round: one byte of each table */
-static void	init_tables(t_whirlpool_tables *t)
-{
-	int	x;
-	int	round;
-	int	col;
-	int	shift;
-
-	x = -1;
-	while (++x < SBOX_SIZE)
-		build_column(t, x);
-	round = 0;
-	while (++round <= WHIRLPOOL_ROUNDS)
-	{
-		t->rc[round] = 0;
-		col = -1;
-		while (++col < WHIRLPOOL_TABLES)
-		{
-			shift = (WHIRLPOOL_TABLES - 1 - col) * BYTE_BITS;
-			t->rc[round] ^= t->c[col][WHIRLPOOL_WORD_SIZE * (round - 1) + col]
-				& ((uint64_t)BYTE_MASK << shift);
-		}
-	}
-	t->initialized = 1;
-}
-
-/* One word of the round function: each table, at one byte of each word */
-static uint64_t	transform(const uint64_t *src, int index)
+static uint64_t	transform(const t_whirlpool_bytes *bytes, int index)
 {
 	uint64_t	value;
-	uint64_t	word;
-	int			shift;
+	int			word;
 	int			table;
 
 	value = 0;
-	shift = (WHIRLPOOL_WORD_SIZE - 1) * BYTE_BITS;
 	table = 0;
 	while (table < WHIRLPOOL_TABLES)
 	{
-		word = src[(index - table) & (WHIRLPOOL_WORDS - 1)];
-		value ^= g_whirlpool_tables.c[table][(word >> shift) & BYTE_MASK];
+		word = (index - table + WHIRLPOOL_WORDS) % WHIRLPOOL_WORDS;
+		value = xor64(value, g_whirlpool_tables.c[table]
+			[bytes->byte[word][WHIRLPOOL_WORD_SIZE - 1 - table]]);
 		table++;
-		shift -= BYTE_BITS;
 	}
 	return (value);
 }
 
 /*
-** One round: the key gets the next round key, then the state is mixed with
-** it. The tables are built on the first call.
+** One round: the key becomes the next round key, then the state is mixed with
+** it. Each is split into bytes first, so it can be rewritten in place. The
+** tables are built on the first call.
 */
 void	whirlpool_round(uint64_t *key, uint64_t *state, int round)
 {
-	uint64_t	next[WHIRLPOOL_WORDS];
-	int			index;
+	t_whirlpool_bytes	bytes;
+	int					index;
 
 	if (!g_whirlpool_tables.initialized)
-		init_tables(&g_whirlpool_tables);
-	index = -1;
-	while (++index < WHIRLPOOL_WORDS)
-		next[index] = transform(key, index);
-	next[0] ^= g_whirlpool_tables.rc[round];
-	index = -1;
-	while (++index < WHIRLPOOL_WORDS)
-		key[index] = next[index];
-	index = -1;
-	while (++index < WHIRLPOOL_WORDS)
-		next[index] = transform(state, index) ^ key[index];
-	index = -1;
-	while (++index < WHIRLPOOL_WORDS)
-		state[index] = next[index];
+		whirlpool_build(&g_whirlpool_tables);
+	split_words(key, &bytes);
+	index = 0;
+	while (index < WHIRLPOOL_WORDS)
+	{
+		key[index] = transform(&bytes, index);
+		index++;
+	}
+	key[0] = xor64(key[0], g_whirlpool_tables.rc[round]);
+	split_words(state, &bytes);
+	index = 0;
+	while (index < WHIRLPOOL_WORDS)
+	{
+		state[index] = xor64(transform(&bytes, index), key[index]);
+		index++;
+	}
 }
 
 #endif

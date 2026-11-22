@@ -6,7 +6,7 @@
 /*   By: rperez-t <rperez-t@student.42belgium.be>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/15 16:59:56 by rperez-t          #+#    #+#             */
-/*   Updated: 2026/11/22 16:10:55 by rperez-t         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:05:35 by rperez-t         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,10 @@ static int	grow_buffer(t_buffer *buffer, size_t len)
 		new_capacity *= GROWTH_FACTOR;
 	new_data = (unsigned char *)malloc(new_capacity);
 	if (new_data == NULL)
-		return (errno = ENOMEM, 0);
+	{
+		errno = ENOMEM;
+		return (0);
+	}
 	if (buffer->len > 0)
 		ft_memcpy(new_data, buffer->data, buffer->len);
 	free(buffer->data);
