@@ -367,4 +367,301 @@
 #  define WHIRLPOOL_CIR_7 9
 # endif
 
+/*
+** Only with -D BONUS_MODE=1. The Whirlpool S-box (ISO/IEC 10118-3): S0 to
+** S255 are its 256 bytes, S[u * 16 + v] for row u and column v of the table
+** of the specification. Those that start with 0xB have the leading 0 above.
+*/
+# if BONUS_MODE
+
+/* S0 to S15: row 0x0 */
+#  define WHIRLPOOL_S0 0x18
+#  define WHIRLPOOL_S1 0x23
+#  define WHIRLPOOL_S2 0xC6
+#  define WHIRLPOOL_S3 0xE8
+#  define WHIRLPOOL_S4 0x87
+#  define WHIRLPOOL_S5 0x0B8
+#  define WHIRLPOOL_S6 0x01
+#  define WHIRLPOOL_S7 0x4F
+#  define WHIRLPOOL_S8 0x36
+#  define WHIRLPOOL_S9 0xA6
+#  define WHIRLPOOL_S10 0xD2
+#  define WHIRLPOOL_S11 0xF5
+#  define WHIRLPOOL_S12 0x79
+#  define WHIRLPOOL_S13 0x6F
+#  define WHIRLPOOL_S14 0x91
+#  define WHIRLPOOL_S15 0x52
+
+/* S16 to S31: row 0x1 */
+#  define WHIRLPOOL_S16 0x60
+#  define WHIRLPOOL_S17 0x0BC
+#  define WHIRLPOOL_S18 0x9B
+#  define WHIRLPOOL_S19 0x8E
+#  define WHIRLPOOL_S20 0xA3
+#  define WHIRLPOOL_S21 0x0C
+#  define WHIRLPOOL_S22 0x7B
+#  define WHIRLPOOL_S23 0x35
+#  define WHIRLPOOL_S24 0x1D
+#  define WHIRLPOOL_S25 0xE0
+#  define WHIRLPOOL_S26 0xD7
+#  define WHIRLPOOL_S27 0xC2
+#  define WHIRLPOOL_S28 0x2E
+#  define WHIRLPOOL_S29 0x4B
+#  define WHIRLPOOL_S30 0xFE
+#  define WHIRLPOOL_S31 0x57
+
+/* S32 to S47: row 0x2 */
+#  define WHIRLPOOL_S32 0x15
+#  define WHIRLPOOL_S33 0x77
+#  define WHIRLPOOL_S34 0x37
+#  define WHIRLPOOL_S35 0xE5
+#  define WHIRLPOOL_S36 0x9F
+#  define WHIRLPOOL_S37 0xF0
+#  define WHIRLPOOL_S38 0x4A
+#  define WHIRLPOOL_S39 0xDA
+#  define WHIRLPOOL_S40 0x58
+#  define WHIRLPOOL_S41 0xC9
+#  define WHIRLPOOL_S42 0x29
+#  define WHIRLPOOL_S43 0x0A
+#  define WHIRLPOOL_S44 0x0B1
+#  define WHIRLPOOL_S45 0xA0
+#  define WHIRLPOOL_S46 0x6B
+#  define WHIRLPOOL_S47 0x85
+
+/* S48 to S63: row 0x3 */
+#  define WHIRLPOOL_S48 0x0BD
+#  define WHIRLPOOL_S49 0x5D
+#  define WHIRLPOOL_S50 0x10
+#  define WHIRLPOOL_S51 0xF4
+#  define WHIRLPOOL_S52 0xCB
+#  define WHIRLPOOL_S53 0x3E
+#  define WHIRLPOOL_S54 0x05
+#  define WHIRLPOOL_S55 0x67
+#  define WHIRLPOOL_S56 0xE4
+#  define WHIRLPOOL_S57 0x27
+#  define WHIRLPOOL_S58 0x41
+#  define WHIRLPOOL_S59 0x8B
+#  define WHIRLPOOL_S60 0xA7
+#  define WHIRLPOOL_S61 0x7D
+#  define WHIRLPOOL_S62 0x95
+#  define WHIRLPOOL_S63 0xD8
+
+/* S64 to S79: row 0x4 */
+#  define WHIRLPOOL_S64 0xFB
+#  define WHIRLPOOL_S65 0xEE
+#  define WHIRLPOOL_S66 0x7C
+#  define WHIRLPOOL_S67 0x66
+#  define WHIRLPOOL_S68 0xDD
+#  define WHIRLPOOL_S69 0x17
+#  define WHIRLPOOL_S70 0x47
+#  define WHIRLPOOL_S71 0x9E
+#  define WHIRLPOOL_S72 0xCA
+#  define WHIRLPOOL_S73 0x2D
+#  define WHIRLPOOL_S74 0x0BF
+#  define WHIRLPOOL_S75 0x07
+#  define WHIRLPOOL_S76 0xAD
+#  define WHIRLPOOL_S77 0x5A
+#  define WHIRLPOOL_S78 0x83
+#  define WHIRLPOOL_S79 0x33
+
+/* S80 to S95: row 0x5 */
+#  define WHIRLPOOL_S80 0x63
+#  define WHIRLPOOL_S81 0x02
+#  define WHIRLPOOL_S82 0xAA
+#  define WHIRLPOOL_S83 0x71
+#  define WHIRLPOOL_S84 0xC8
+#  define WHIRLPOOL_S85 0x19
+#  define WHIRLPOOL_S86 0x49
+#  define WHIRLPOOL_S87 0xD9
+#  define WHIRLPOOL_S88 0xF2
+#  define WHIRLPOOL_S89 0xE3
+#  define WHIRLPOOL_S90 0x5B
+#  define WHIRLPOOL_S91 0x88
+#  define WHIRLPOOL_S92 0x9A
+#  define WHIRLPOOL_S93 0x26
+#  define WHIRLPOOL_S94 0x32
+#  define WHIRLPOOL_S95 0x0B0
+
+/* S96 to S111: row 0x6 */
+#  define WHIRLPOOL_S96 0xE9
+#  define WHIRLPOOL_S97 0x0F
+#  define WHIRLPOOL_S98 0xD5
+#  define WHIRLPOOL_S99 0x80
+#  define WHIRLPOOL_S100 0x0BE
+#  define WHIRLPOOL_S101 0xCD
+#  define WHIRLPOOL_S102 0x34
+#  define WHIRLPOOL_S103 0x48
+#  define WHIRLPOOL_S104 0xFF
+#  define WHIRLPOOL_S105 0x7A
+#  define WHIRLPOOL_S106 0x90
+#  define WHIRLPOOL_S107 0x5F
+#  define WHIRLPOOL_S108 0x20
+#  define WHIRLPOOL_S109 0x68
+#  define WHIRLPOOL_S110 0x1A
+#  define WHIRLPOOL_S111 0xAE
+
+/* S112 to S127: row 0x7 */
+#  define WHIRLPOOL_S112 0x0B4
+#  define WHIRLPOOL_S113 0x54
+#  define WHIRLPOOL_S114 0x93
+#  define WHIRLPOOL_S115 0x22
+#  define WHIRLPOOL_S116 0x64
+#  define WHIRLPOOL_S117 0xF1
+#  define WHIRLPOOL_S118 0x73
+#  define WHIRLPOOL_S119 0x12
+#  define WHIRLPOOL_S120 0x40
+#  define WHIRLPOOL_S121 0x08
+#  define WHIRLPOOL_S122 0xC3
+#  define WHIRLPOOL_S123 0xEC
+#  define WHIRLPOOL_S124 0xDB
+#  define WHIRLPOOL_S125 0xA1
+#  define WHIRLPOOL_S126 0x8D
+#  define WHIRLPOOL_S127 0x3D
+
+/* S128 to S143: row 0x8 */
+#  define WHIRLPOOL_S128 0x97
+#  define WHIRLPOOL_S129 0x00
+#  define WHIRLPOOL_S130 0xCF
+#  define WHIRLPOOL_S131 0x2B
+#  define WHIRLPOOL_S132 0x76
+#  define WHIRLPOOL_S133 0x82
+#  define WHIRLPOOL_S134 0xD6
+#  define WHIRLPOOL_S135 0x1B
+#  define WHIRLPOOL_S136 0x0B5
+#  define WHIRLPOOL_S137 0xAF
+#  define WHIRLPOOL_S138 0x6A
+#  define WHIRLPOOL_S139 0x50
+#  define WHIRLPOOL_S140 0x45
+#  define WHIRLPOOL_S141 0xF3
+#  define WHIRLPOOL_S142 0x30
+#  define WHIRLPOOL_S143 0xEF
+
+/* S144 to S159: row 0x9 */
+#  define WHIRLPOOL_S144 0x3F
+#  define WHIRLPOOL_S145 0x55
+#  define WHIRLPOOL_S146 0xA2
+#  define WHIRLPOOL_S147 0xEA
+#  define WHIRLPOOL_S148 0x65
+#  define WHIRLPOOL_S149 0x0BA
+#  define WHIRLPOOL_S150 0x2F
+#  define WHIRLPOOL_S151 0xC0
+#  define WHIRLPOOL_S152 0xDE
+#  define WHIRLPOOL_S153 0x1C
+#  define WHIRLPOOL_S154 0xFD
+#  define WHIRLPOOL_S155 0x4D
+#  define WHIRLPOOL_S156 0x92
+#  define WHIRLPOOL_S157 0x75
+#  define WHIRLPOOL_S158 0x06
+#  define WHIRLPOOL_S159 0x8A
+
+/* S160 to S175: row 0xA */
+#  define WHIRLPOOL_S160 0x0B2
+#  define WHIRLPOOL_S161 0xE6
+#  define WHIRLPOOL_S162 0x0E
+#  define WHIRLPOOL_S163 0x1F
+#  define WHIRLPOOL_S164 0x62
+#  define WHIRLPOOL_S165 0xD4
+#  define WHIRLPOOL_S166 0xA8
+#  define WHIRLPOOL_S167 0x96
+#  define WHIRLPOOL_S168 0xF9
+#  define WHIRLPOOL_S169 0xC5
+#  define WHIRLPOOL_S170 0x25
+#  define WHIRLPOOL_S171 0x59
+#  define WHIRLPOOL_S172 0x84
+#  define WHIRLPOOL_S173 0x72
+#  define WHIRLPOOL_S174 0x39
+#  define WHIRLPOOL_S175 0x4C
+
+/* S176 to S191: row 0xB */
+#  define WHIRLPOOL_S176 0x5E
+#  define WHIRLPOOL_S177 0x78
+#  define WHIRLPOOL_S178 0x38
+#  define WHIRLPOOL_S179 0x8C
+#  define WHIRLPOOL_S180 0xD1
+#  define WHIRLPOOL_S181 0xA5
+#  define WHIRLPOOL_S182 0xE2
+#  define WHIRLPOOL_S183 0x61
+#  define WHIRLPOOL_S184 0x0B3
+#  define WHIRLPOOL_S185 0x21
+#  define WHIRLPOOL_S186 0x9C
+#  define WHIRLPOOL_S187 0x1E
+#  define WHIRLPOOL_S188 0x43
+#  define WHIRLPOOL_S189 0xC7
+#  define WHIRLPOOL_S190 0xFC
+#  define WHIRLPOOL_S191 0x04
+
+/* S192 to S207: row 0xC */
+#  define WHIRLPOOL_S192 0x51
+#  define WHIRLPOOL_S193 0x99
+#  define WHIRLPOOL_S194 0x6D
+#  define WHIRLPOOL_S195 0x0D
+#  define WHIRLPOOL_S196 0xFA
+#  define WHIRLPOOL_S197 0xDF
+#  define WHIRLPOOL_S198 0x7E
+#  define WHIRLPOOL_S199 0x24
+#  define WHIRLPOOL_S200 0x3B
+#  define WHIRLPOOL_S201 0xAB
+#  define WHIRLPOOL_S202 0xCE
+#  define WHIRLPOOL_S203 0x11
+#  define WHIRLPOOL_S204 0x8F
+#  define WHIRLPOOL_S205 0x4E
+#  define WHIRLPOOL_S206 0x0B7
+#  define WHIRLPOOL_S207 0xEB
+
+/* S208 to S223: row 0xD */
+#  define WHIRLPOOL_S208 0x3C
+#  define WHIRLPOOL_S209 0x81
+#  define WHIRLPOOL_S210 0x94
+#  define WHIRLPOOL_S211 0xF7
+#  define WHIRLPOOL_S212 0x0B9
+#  define WHIRLPOOL_S213 0x13
+#  define WHIRLPOOL_S214 0x2C
+#  define WHIRLPOOL_S215 0xD3
+#  define WHIRLPOOL_S216 0xE7
+#  define WHIRLPOOL_S217 0x6E
+#  define WHIRLPOOL_S218 0xC4
+#  define WHIRLPOOL_S219 0x03
+#  define WHIRLPOOL_S220 0x56
+#  define WHIRLPOOL_S221 0x44
+#  define WHIRLPOOL_S222 0x7F
+#  define WHIRLPOOL_S223 0xA9
+
+/* S224 to S239: row 0xE */
+#  define WHIRLPOOL_S224 0x2A
+#  define WHIRLPOOL_S225 0x0BB
+#  define WHIRLPOOL_S226 0xC1
+#  define WHIRLPOOL_S227 0x53
+#  define WHIRLPOOL_S228 0xDC
+#  define WHIRLPOOL_S229 0x0B
+#  define WHIRLPOOL_S230 0x9D
+#  define WHIRLPOOL_S231 0x6C
+#  define WHIRLPOOL_S232 0x31
+#  define WHIRLPOOL_S233 0x74
+#  define WHIRLPOOL_S234 0xF6
+#  define WHIRLPOOL_S235 0x46
+#  define WHIRLPOOL_S236 0xAC
+#  define WHIRLPOOL_S237 0x89
+#  define WHIRLPOOL_S238 0x14
+#  define WHIRLPOOL_S239 0xE1
+
+/* S240 to S255: row 0xF */
+#  define WHIRLPOOL_S240 0x16
+#  define WHIRLPOOL_S241 0x3A
+#  define WHIRLPOOL_S242 0x69
+#  define WHIRLPOOL_S243 0x09
+#  define WHIRLPOOL_S244 0x70
+#  define WHIRLPOOL_S245 0x0B6
+#  define WHIRLPOOL_S246 0xD0
+#  define WHIRLPOOL_S247 0xED
+#  define WHIRLPOOL_S248 0xCC
+#  define WHIRLPOOL_S249 0x42
+#  define WHIRLPOOL_S250 0x98
+#  define WHIRLPOOL_S251 0xA4
+#  define WHIRLPOOL_S252 0x28
+#  define WHIRLPOOL_S253 0x5C
+#  define WHIRLPOOL_S254 0xF8
+#  define WHIRLPOOL_S255 0x86
+
+# endif
+
 #endif
