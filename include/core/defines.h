@@ -25,6 +25,13 @@
 # define MSG_USAGE "usage: ft_ssl command [flags] [file/string]"
 # define MSG_FLAGS "-p -q -r -s"
 
+/* The digest commands, by the name they are typed with (whirlpool: bonus) */
+# define MD5_NAME "md5"
+# define SHA256_NAME "sha256"
+# if BONUS_MODE
+#  define WHIRLPOOL_NAME "whirlpool"
+# endif
+
 /* The flags of every digest command */
 # define FLAG_PRINT "-p"
 # define FLAG_QUIET "-q"
