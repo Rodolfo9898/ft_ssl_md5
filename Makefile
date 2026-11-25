@@ -52,10 +52,11 @@ $(LIBFT_LIB): $(LIBFT_FILES) | submodules
 	@$(call explain,Entering $(LIBFT): building $(notdir $@) with its own Makefile)
 	@$(call run,$(MAKE) --no-print-directory -C $(LIBFT))
 
+# A library's objects are in its build/, or in objects/ for the older versions
+# a submodule may still be at: both are looked for.
 clean:
-	@$(call remove,$(OBJ_DIR),Removing the objects of the mandatory build)
-	@$(call remove,$(OBJ_BONUS_DIR),Removing the objects of the bonus build)
-	@if $(call exists,$(LIBFT)objects); then \
+	@$(call remove,$(BUILD_DIR),Removing the objects of both builds)
+	@if $(call exists,$(LIBFT)build $(LIBFT)objects); then \
 		$(call explain,Entering $(LIBFT): removing its objects with its own Makefile); \
 		$(call run,$(MAKE) --no-print-directory -sC $(LIBFT) clean); \
 	else \

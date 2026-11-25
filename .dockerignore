@@ -2,8 +2,7 @@
 .git
 ft_ssl
 ft_ssl_bonus
-objects/
-objects_bonus/
+build/
 **/*.o
 **/*.a
 **/*.d

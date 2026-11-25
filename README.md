@@ -283,7 +283,7 @@ hashed: simple, and fast enough (for 50 MB, about 0.9 s for md5, 1.4 s for sha25
 and its padded copy in memory.
 
 **The bonus never touches the mandatory build.** `make bonus` compiles every file again
-with `-D BONUS_MODE=1` into `objects_bonus/`, and links `ft_ssl_bonus`;
+with `-D BONUS_MODE=1` into `build/bonus/`, and links `ft_ssl_bonus`;
 `include/core/defines.h` sets `BONUS_MODE` to 0 otherwise. The `*_bonus.c` files are
 wrapped in `#if BONUS_MODE`, so they are empty in `ft_ssl`. `main()` starts the command
 reader under `if (BONUS_MODE)`: the function is declared in both builds, defined only in

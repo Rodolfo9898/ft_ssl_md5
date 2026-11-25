@@ -20,7 +20,10 @@ DEBUG_FLAGS = -g -fsanitize=address
 DEPFLAGS = -MMD -MP
 
 SRC_DIR = ./sources
-OBJ_DIR = ./objects
-OBJ_BONUS_DIR = ./objects_bonus
+BUILD_DIR = ./build
+# Each build has its own object folder, both in build/; the programs stay at
+# the root.
+OBJ_DIR = $(BUILD_DIR)/mandatory
+OBJ_BONUS_DIR = $(BUILD_DIR)/bonus
 LIBS_DIR = ./libs
 DOCKER_IMAGE = ft_ssl-test
