@@ -11,6 +11,7 @@
 # **************************************************************************** #
 
 include mk/colors.mk
+include mk/hint.mk
 include mk/config.mk
 include mk/libs.mk
 include mk/sources.mk
