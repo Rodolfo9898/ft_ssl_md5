@@ -146,6 +146,15 @@ Each rule fetches the submodule and rebuilds the image first, so it always tests
 current sources. `make docker-mandatory` and `make docker-bonus` fail if any check
 fails.
 
+A plain `make` that fails also prints, in yellow, `dependencies missing: run make
+docker-shell to have them all inside the docker container` (`mk/hint.mk`). The build runs
+as always, in a second `make`, and its exit status is kept: the line only comes after its
+errors. Only the plain `make` does it: `make bonus`, `make clean`, `make re`, any other
+rule, a Ctrl-C and a `make` inside the container print nothing extra. A mistake in your own
+code shows it too, so read the errors above it first. `make docker-shell` gives a shell in
+the Linux image, with the toolchain and both programs built; `make docker-clean` removes
+the image when you are done.
+
 ## How the libraries are handled
 
 The subject allows functions that do not do the work for us, and libft only gives
@@ -184,6 +193,8 @@ mk/                  everything the Makefile includes
                        yellow, explanations blue; clean and fclean say what they remove
   config.mk            names (ft_ssl, ft_ssl_bonus), flags (-O2), BONUS_FLAGS,
                        directories, Docker name
+  hint.mk              the yellow hint of a plain make that fails: use make
+                       docker-shell
   libs.mk              libft path, and the files its rule depends on
   sources.mk           source list per folder (one list, used by both builds)
 include/
